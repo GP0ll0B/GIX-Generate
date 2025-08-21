@@ -1,15 +1,19 @@
+
+
 import React from 'react';
 import { GeneratedContent, SIGNATURE_HTML_FOR_VIDEO_POST } from '../constants';
 import { Hashtags } from './Hashtags';
 import { PlatformDetails } from './PlatformDetails';
 import { PostHeader } from './PostHeader';
 import { SignatureBlock } from './SignatureBlock';
+import { BrandReviewPanel } from './BrandReviewPanel';
 
 interface FacebookVideoPostProps {
   post: Extract<GeneratedContent, { type: 'video' }>;
+  onReview: () => void;
 }
 
-export const FacebookVideoPost: React.FC<FacebookVideoPostProps> = ({ post }) => {
+export const FacebookVideoPost: React.FC<FacebookVideoPostProps> = ({ post, onReview }) => {
   return (
     <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-xl shadow-lg border border-white/20 dark:border-white/10 overflow-hidden">
       <div className="relative aspect-square w-full">
@@ -38,6 +42,7 @@ export const FacebookVideoPost: React.FC<FacebookVideoPostProps> = ({ post }) =>
           </div>
         </div>
       </div>
+       <BrandReviewPanel post={post} onReview={onReview} />
        <PlatformDetails />
     </div>
   );

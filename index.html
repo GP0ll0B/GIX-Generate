@@ -53,6 +53,13 @@
       .animate-overlay-show {
         animation: overlay-show 0.2s ease-out forwards;
       }
+      @keyframes pulse-bg {
+        0%, 100% { background-color: transparent; }
+        50% { background-color: rgba(59, 130, 246, 0.15); } /* bg-blue-500/15 */
+      }
+      .animate-pulse-bg {
+        animation: pulse-bg 0.8s ease-in-out;
+      }
     </style>
   <script id="project-metadata" type="application/json">
       {

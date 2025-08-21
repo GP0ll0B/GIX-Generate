@@ -1,106 +1,106 @@
-
-
-import React, { useState, useMemo } from 'react';
-import { USE_CASES, UseCase, FilterCategory } from '../../constants';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { UseCase, USE_CASES, FilterCategory } from '../../constants';
 import { UseCaseCard } from '../ui/UseCaseCard';
-import { Tabs } from '../ui/Tabs';
-import { MegaphoneIconLarge, DocumentTextIcon, ChatBubbleIcon, CubeIcon, GridIcon, ChartBarIcon } from '../ui/icons';
+import { 
+    DocumentTextIcon, MegaphoneIcon, VideoCameraIcon, 
+    LightBulbIcon, FileJsonIcon, ChartBarIcon, 
+    GridIcon, CubeIcon, WorkflowIcon, ChatBubbleIcon, UsersIcon, BuildingStorefrontIcon, LockIcon, MicrophoneIcon 
+} from '../ui/icons';
 
 interface UseCaseSelectionProps {
     onSelectUseCase: (useCase: UseCase) => void;
 }
 
-const filterCategories: Array<{ value: FilterCategory, label: string }> = [
-    { value: 'featured', label: 'Featured' },
-    { value: 'all', label: 'All' },
-    { value: 'ads', label: 'Ads and monetization' },
-    { value: 'content', label: 'Content management' },
-    { value: 'messaging', label: 'Business messaging' },
-    { value: 'other', label: 'Others' },
-];
-
-const getUseCaseIcon = (useCase: UseCase): React.ReactNode => {
-    if (useCase.id === 'all-tools') return <GridIcon />;
-    if (useCase.id === 'ai-performance-model') return <ChartBarIcon />;
-
-    const primaryCategory = useCase.categories.find(c => c !== 'featured');
-    switch (primaryCategory) {
-        case 'ads':
-            return <MegaphoneIconLarge />;
-        case 'content':
-            return <DocumentTextIcon />;
-        case 'messaging':
-            return <ChatBubbleIcon />;
-        case 'other':
-        default:
-            return <CubeIcon />;
-    }
+const getIconForUseCase = (id: string): React.ReactNode => {
+    if (id.includes('text') || id.includes('fact-checked') || id.includes('analysis')) return <DocumentTextIcon />;
+    if (id.includes('ad') || id.includes('guided')) return <MegaphoneIcon />;
+    if (id.includes('video')) return <VideoCameraIcon />;
+    if (id.includes('image')) return <LightBulbIcon />;
+    if (id.includes('strategy')) return <FileJsonIcon />;
+    if (id.includes('gantt')) return <ChartBarIcon />;
+    if (id.includes('all-tools')) return <GridIcon />;
+    if (id.includes('math-equation')) return <CubeIcon />;
+    if (id.includes('json-workflow')) return <WorkflowIcon />;
+    if (id.includes('chat') || id.includes('dialog')) return <ChatBubbleIcon />;
+    if (id.includes('comment') || id.includes('dashboard')) return <UsersIcon />;
+    if (id.includes('google-business')) return <BuildingStorefrontIcon />;
+    if (id.includes('crypto')) return <LockIcon />;
+    return <DocumentTextIcon />;
 };
+
+const filterOptions: { label: string; value: FilterCategory }[] = [
+    { label: 'Featured', value: 'featured' },
+    { label: 'All', value: 'all' },
+    { label: 'Content', value: 'content' },
+    { label: 'Ads & Monetization', value: 'ads' },
+    { label: 'Messaging & Analysis', value: 'messaging' },
+    { label: 'Other Tools', value: 'other' },
+];
 
 export const UseCaseSelection: React.FC<UseCaseSelectionProps> = ({ onSelectUseCase }) => {
     const [activeFilter, setActiveFilter] = useState<FilterCategory>('featured');
 
-    const getCount = (category: FilterCategory) => {
-        if (category === 'all') return USE_CASES.length;
-        return USE_CASES.filter(uc => uc.categories.includes(category)).length;
+    const filteredUseCases = activeFilter === 'all'
+        ? USE_CASES
+        : USE_CASES.filter(uc => uc.categories.includes(activeFilter));
+
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.05,
+            },
+        },
     };
 
-    const filteredUseCases = useMemo(() => {
-        if (activeFilter === 'all') {
-            return USE_CASES;
-        }
-        return USE_CASES.filter(uc => uc.categories.includes(activeFilter));
-    }, [activeFilter]);
-    
-    const tabOptions = filterCategories.map(cat => ({
-        value: cat.value,
-        label: `${cat.label} (${getCount(cat.value)})`
-    }));
+    const cardVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: { opacity: 1, y: 0 },
+    };
 
     return (
-        <div className="max-w-6xl mx-auto">
-            <div className="mb-6">
-                <h2 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">Filter by</h2>
-                <Tabs<FilterCategory>
-                    options={tabOptions}
-                    active={activeFilter}
-                    onSelect={setActiveFilter}
-                />
+        <div className="max-w-7xl mx-auto">
+             <div className="text-center mb-10">
+                <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100">
+                    What would you like to create?
+                </h2>
+                <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">
+                    Select a tool to start generating content with the G|I|X AI Engine.
+                </p>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredUseCases.map(useCase => (
-                    <UseCaseCard 
-                        key={useCase.id}
-                        useCase={useCase}
-                        onSelect={() => onSelectUseCase(useCase)}
-                        icon={getUseCaseIcon(useCase)}
-                    />
+            <div className="flex justify-center flex-wrap gap-2 mb-8">
+                {filterOptions.map(option => (
+                    <button
+                        key={option.value}
+                        onClick={() => setActiveFilter(option.value)}
+                        className={`px-4 py-2 text-sm font-semibold rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-900 focus:ring-blue-500 ${activeFilter === option.value
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                            }`}
+                    >
+                        {option.label}
+                    </button>
                 ))}
             </div>
 
-            <div className="mt-12 text-center">
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Looking for something else?</h3>
-                <div 
-                    className="mt-4 max-w-2xl mx-auto p-6 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                    onClick={() => onSelectUseCase({
-                        id: 'legacy-ai',
-                        title: 'Enhance Legacy Apps with Google AI',
-                        description: 'Use Google AI to generate content and strategies for older apps that rely on legacy permissions or APIs, giving them new life and capabilities.',
-                        categories: ['other'],
-                        targetPostType: 'text',
-                        initialPrompt: "Generate a post announcing our legacy app's new AI-powered features."
-                    })}
-                >
-                    <p className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Enhance Legacy Apps with Google AI</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Leverage Google AI to modernize and extend your existing applications. Select this option if you are:</p>
-                    <ul className="list-disc list-inside space-y-1 text-sm text-gray-600 dark:text-gray-400 text-left">
-                        <li>Migrating an older app that relies on legacy permissions or APIs.</li>
-                        <li>Looking for fine-grained control over individual app permissions.</li>
-                        <li>Building custom integrations that the new experience doesn’t support.</li>
-                    </ul>
-                </div>
-            </div>
+            <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+                {filteredUseCases.map(useCase => (
+                    <motion.div key={useCase.id} variants={cardVariants}>
+                        <UseCaseCard
+                            useCase={useCase}
+                            onSelect={() => onSelectUseCase(useCase)}
+                            icon={getIconForUseCase(useCase.id)}
+                        />
+                    </motion.div>
+                ))}
+            </motion.div>
         </div>
     );
 };

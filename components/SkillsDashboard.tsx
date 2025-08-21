@@ -1,5 +1,7 @@
 
 
+
+
 import React, { useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { SKILLS_DATA, SkillLevel, Challenge as ChallengeType } from '../constants';
@@ -18,7 +20,8 @@ const challengeIconMap: { [key in ChallengeType['icon']]: React.ReactNode } = {
     post: <DocumentTextIcon />,
     engage: <ChatBubbleIcon />,
     monetize: <DollarSignIcon />,
-    analyze: <ChartBarIcon />
+    analyze: <ChartBarIcon />,
+    secure: <LockIcon />,
 };
 
 const ChallengeCard: React.FC<{

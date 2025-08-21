@@ -1,10 +1,5 @@
 
 
-
-
-
-
-
 import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { GeneratedContent, PostType, SIGNATURE_TEXT_FOR_COPY } from '../../constants';
@@ -20,6 +15,7 @@ import { ActionBar } from '../ActionBar';
 import { FacebookGeneratedVideoPost } from '../FacebookGeneratedVideoPost';
 import { FacebookVoiceDialogPost } from '../FacebookVoiceDialogPost';
 import { FacebookGuidedPost } from '../FacebookGuidedPost';
+import { GoogleBusinessPost } from '../GoogleBusinessPost';
 
 interface PreviewStageProps {
   isLoading: boolean;
@@ -31,6 +27,7 @@ interface PreviewStageProps {
   onGenerateImage?: () => void;
   onPromptChange?: (prompt: string) => void;
   onPublish: () => void;
+  onReviewBrandAlignment: (variationIndex: number) => void;
   showToast: (message: string, type: 'success' | 'error') => void;
 }
 
@@ -44,7 +41,7 @@ const EmptyState: React.FC = () => (
 
 export const PreviewStage: React.FC<PreviewStageProps> = ({
   isLoading, isGeneratingImage, postType, contentVariations, currentVariationIndex,
-  setCurrentVariationIndex, onGenerateImage, onPromptChange, onPublish, showToast
+  setCurrentVariationIndex, onGenerateImage, onPromptChange, onPublish, onReviewBrandAlignment, showToast
 }) => {
     
     const fadeAnimation = {
@@ -79,6 +76,8 @@ export const PreviewStage: React.FC<PreviewStageProps> = ({
             if (content.videoUrl) {
                 textToCopy += `\n\nVideo URL (temporary): ${content.videoUrl}`;
             }
+        } else if (content.type === 'google_business_post') {
+            textToCopy = content.postContent;
         } else if (content.type === 'voice_dialog') {
             textToCopy = `Voice Dialog: ${content.dialogType}\nScenario: ${content.scenario}\n\n`;
             textToCopy += content.dialog.map(turn => `${turn.speaker}: ${turn.line}`).join('\n');
@@ -89,16 +88,19 @@ export const PreviewStage: React.FC<PreviewStageProps> = ({
     };
 
     const renderPost = (post: GeneratedContent) => {
+        const onReview = () => onReviewBrandAlignment(currentVariationIndex);
+
         switch (post.type) {
-            case 'text': return <FacebookPost post={post} />;
-            case 'guided': return <FacebookGuidedPost post={post} />;
-            case 'grounded_text': return <FacebookGroundedPost post={post} />;
+            case 'text': return <FacebookPost post={post} onReview={onReview} />;
+            case 'guided': return <FacebookGuidedPost post={post} onReview={onReview} />;
+            case 'grounded_text': return <FacebookGroundedPost post={post} onReview={onReview} />;
             case 'ad': return (
                 <FacebookAdPost 
                     post={post}
                     isGeneratingImage={isGeneratingImage!}
                     onGenerateImage={onGenerateImage!}
                     onPromptChange={onPromptChange!}
+                    onReview={onReview}
                 />
             );
             case 'image': return (
@@ -108,12 +110,22 @@ export const PreviewStage: React.FC<PreviewStageProps> = ({
                     onGenerateImage={onGenerateImage!}
                     onPromptChange={onPromptChange!}
                     isPostLoading={isLoading}
+                    onReview={onReview}
                 />
             );
-            case 'video': return <FacebookVideoPost post={post} />;
+            case 'google_business_post': return (
+                <GoogleBusinessPost 
+                    post={post}
+                    isGeneratingImage={isGeneratingImage!}
+                    onGenerateImage={onGenerateImage!}
+                    onPromptChange={onPromptChange!}
+                    onReview={onReview}
+                />
+            );
+            case 'video': return <FacebookVideoPost post={post} onReview={onReview} />;
             case 'video_generation': return <FacebookGeneratedVideoPost post={post} />;
             case 'voice_dialog': return <FacebookVoiceDialogPost post={post} />;
-            case 'analysis': return <FacebookAnalysisPost post={post} />;
+            case 'analysis': return <FacebookAnalysisPost post={post} onReview={onReview} />;
             default: return null;
         }
     };
@@ -134,17 +146,22 @@ export const PreviewStage: React.FC<PreviewStageProps> = ({
                         <ActionBar 
                             onPublish={onPublish}
                             onCopy={handleCopy}
-                            onPrev={() => setCurrentVariationIndex(currentVariationIndex - 1)} 
-                            onNext={() => setCurrentVariationIndex(currentVariationIndex + 1)} 
+                            onPrev={() => setCurrentVariationIndex(currentVariationIndex - 1)}
+                            onNext={() => setCurrentVariationIndex(currentVariationIndex + 1)}
                             currentIndex={currentVariationIndex}
                             totalVariations={contentVariations.length}
-                            disabled={
-                                isLoading ||
-                                ((currentPost?.type === 'image' || currentPost?.type === 'ad') && (isGeneratingImage || !currentPost.imageUrl?.startsWith('data:'))) ||
-                                (currentPost?.type === 'video_generation' && currentPost.status !== 'success')
-                            }
+                            disabled={isLoading || !!isGeneratingImage || (currentPost && 'brandAlignmentStatus' in currentPost && currentPost.brandAlignmentStatus === 'loading')}
                         />
-                        {currentPost && renderPost(currentPost)}
+                        {currentPost && (
+                            <AnimatePresence mode="wait">
+                                <motion.div 
+                                    key={currentVariationIndex} 
+                                    {...fadeAnimation as any}
+                                >
+                                    {renderPost(currentPost)}
+                                </motion.div>
+                            </AnimatePresence>
+                        )}
                     </motion.div>
                 )}
             </AnimatePresence>

@@ -1,15 +1,14 @@
+
 import React from 'react';
 import { ArrowLeftIcon } from '../ui/icons';
 
 interface HeaderProps {
-    view: 'useCaseSelection' | 'generator';
+    view: 'useCaseSelection' | 'generator' | 'landing';
     useCaseTitle?: string;
     onBack?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ view, useCaseTitle, onBack }) => {
-    const isSelectionView = view === 'useCaseSelection';
-
     return (
         <header className="text-center relative">
             {view === 'generator' && onBack && (
@@ -26,15 +25,15 @@ export const Header: React.FC<HeaderProps> = ({ view, useCaseTitle, onBack }) =>
                 G|I|X Generate
             </h1>
 
-            {isSelectionView ? (
+            {view === 'landing' || view === 'useCaseSelection' ? (
                  <p className="mt-3 text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto italic">
                     “AikoInfinity’s state-of-the-art facilities house the world’s most advanced AI technologies, driving innovation at the frontier of intelligence.”
                 </p>
-            ) : (
+            ) : view === 'generator' ? (
                 <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">
                     Now generating content for: <span className="font-semibold text-gray-800 dark:text-gray-200">{useCaseTitle || '...'}</span>
                 </p>
-            )}
+            ) : null}
         </header>
     );
 };

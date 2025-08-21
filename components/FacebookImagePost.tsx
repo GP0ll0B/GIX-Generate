@@ -1,3 +1,5 @@
+
+
 import React from 'react';
 import { GeneratedContent, SIGNATURE_HTML_FOR_TEXT_POST } from '../constants';
 import { Button } from './ui/Button';
@@ -7,6 +9,7 @@ import { PostHeader } from './PostHeader';
 import { Hashtags } from './Hashtags';
 import { SignatureBlock } from './SignatureBlock';
 import { PlatformDetails } from './PlatformDetails';
+import { BrandReviewPanel } from './BrandReviewPanel';
 
 interface FacebookImagePostProps {
   post: Extract<GeneratedContent, { type: 'image' }>;
@@ -14,10 +17,11 @@ interface FacebookImagePostProps {
   onGenerateImage: () => void;
   onPromptChange: (newPrompt: string) => void;
   isPostLoading: boolean;
+  onReview: () => void;
 }
 
 export const FacebookImagePost: React.FC<FacebookImagePostProps> = ({ 
-  post, isGeneratingImage, onGenerateImage, onPromptChange, isPostLoading
+  post, isGeneratingImage, onGenerateImage, onPromptChange, isPostLoading, onReview
 }) => {
 
   const isFinalImage = post.imageUrl && post.imageUrl.startsWith('data:');
@@ -74,6 +78,7 @@ export const FacebookImagePost: React.FC<FacebookImagePostProps> = ({
         <Hashtags hashtags={post.hashtags} />
         <SignatureBlock html={SIGNATURE_HTML_FOR_TEXT_POST} />
       </div>
+      <BrandReviewPanel post={post} onReview={onReview} />
       <PlatformDetails />
     </div>
   );

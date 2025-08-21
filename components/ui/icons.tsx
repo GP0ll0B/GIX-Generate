@@ -20,8 +20,8 @@ export const ShareIcon = () => (
     </svg>
 );
 
-export const CopyIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+export const CopyIcon = ({ className = '' }: { className?: string }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${className}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
     </svg>
 );
@@ -87,7 +87,7 @@ export const StarIcon: React.FC<{className?: string}> = ({ className }) => (
     </svg>
 );
 
-export const PlayIcon: React.FC<{className?: string}> = ({ className }) => (
+export const PlayIcon: React.FC<{className?: string}> = ({ className = '' }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${className}`} viewBox="0 0 20 20" fill="currentColor">
         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
     </svg>
@@ -275,5 +275,23 @@ export const HashtagIcon: React.FC<{className?: string}> = ({ className }) => (
 export const LockIcon: React.FC<{className?: string}> = ({className}) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${className}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+    </svg>
+);
+
+export const WorkflowIcon: React.FC<{className?: string}> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${className}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" />
+    </svg>
+);
+
+export const BuildingStorefrontIcon: React.FC<{className?: string}> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${className}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5A.75.75 0 0114.25 12h.5a.75.75 0 01.75.75V21m-4.5 0v-7.5A.75.75 0 0110.5 12h.5a.75.75 0 01.75.75V21m-4.5 0V15A2.25 2.25 0 018.25 12.75h7.5A2.25 2.25 0 0118 15v6M3 21h18M3 10.5h18M3 10.5l-1.523-5.242A2.25 2.25 0 013.22 2.75h17.56a2.25 2.25 0 012.243 2.508L21 10.5M12 21v-3.375c0-.621-.504-1.125-1.125-1.125h-1.5c-.621 0-1.125.504-1.125 1.125V21" />
+    </svg>
+);
+
+export const BuildingStorefrontIconLarge: React.FC<{className?: string}> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={`h-10 w-10 ${className}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5A.75.75 0 0114.25 12h.5a.75.75 0 01.75.75V21m-4.5 0v-7.5A.75.75 0 0110.5 12h.5a.75.75 0 01.75.75V21m-4.5 0V15A2.25 2.25 0 018.25 12.75h7.5A2.25 2.25 0 0118 15v6M3 21h18M3 10.5h18M3 10.5l-1.523-5.242A2.25 2.25 0 013.22 2.75h17.56a2.25 2.25 0 012.243 2.508L21 10.5M12 21v-3.375c0-.621-.504-1.125-1.125-1.125h-1.5c-.621 0-1.125.504-1.125 1.125V21" />
     </svg>
 );

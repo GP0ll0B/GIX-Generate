@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface StellaSystemStatusProps {
-    dialogType: 'Send Text Message' | 'Create Call' | 'Cancel Action';
+    activeIntent: string;
 }
 
 const StatusIndicator: React.FC<{ status: 'ONLINE' | 'ACTIVE' | 'READY', children: React.ReactNode }> = ({ status, children }) => {
@@ -36,15 +36,9 @@ const IntentDisplay: React.FC<{ intent: string }> = ({ intent }) => (
     </div>
 );
 
-export const StellaSystemStatus: React.FC<StellaSystemStatusProps> = ({ dialogType }) => {
+export const StellaSystemStatus: React.FC<StellaSystemStatusProps> = ({ activeIntent }) => {
     const confidence = (Math.random() * (99.8 - 97.5) + 97.5).toFixed(2);
     const latency = (Math.random() * (95 - 70) + 70).toFixed(0);
-    
-    const activeIntent = {
-        'Send Text Message': 'intent://SEND_MESSAGE',
-        'Create Call': 'intent://INITIATE_CALL',
-        'Cancel Action': 'intent://CANCEL_ACTION',
-    }[dialogType];
 
     return (
         <div className="font-mono text-xs">

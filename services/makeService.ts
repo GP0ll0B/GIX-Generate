@@ -7,11 +7,13 @@ export const constructMakePayload = (content: GeneratedContent, scheduleTime: Da
     let strategyData: StrategyData | undefined = undefined;
     let videoUrl: string | undefined = undefined;
     let voiceDialog: GeneratedContent extends { type: 'voice_dialog' } ? GeneratedContent['dialog'] : undefined;
+    let gmbPostDetails: MakePostPayload['gmbPostDetails'] | undefined = undefined;
 
     switch (content.type) {
         case 'text':
         case 'grounded_text':
         case 'analysis':
+        case 'guided':
             caption = content.content;
             hashtags = content.hashtags;
             break;
@@ -20,7 +22,8 @@ export const constructMakePayload = (content: GeneratedContent, scheduleTime: Da
             hashtags = content.hashtags;
             break;
         case 'image':
-            caption = content.caption;
+        case 'ad':
+            caption = content.type === 'image' ? content.caption : `**${content.headline}**\n\n${content.primaryText}\n\nCTA: ${content.callToAction}`;
             hashtags = content.hashtags;
             if (content.imageUrl && content.imageUrl.startsWith('data:image/jpeg;base64,')) {
                 imageBase64 = content.imageUrl.split(',')[1];
@@ -38,6 +41,17 @@ export const constructMakePayload = (content: GeneratedContent, scheduleTime: Da
             caption = `Voice Dialog for "${content.dialogType}": ${content.scenario}`;
             voiceDialog = content.dialog as any;
             break;
+        case 'google_business_post':
+            caption = content.postContent;
+            if (content.imageUrl && content.imageUrl.startsWith('data:image/jpeg;base64,')) {
+                imageBase64 = content.imageUrl.split(',')[1];
+            }
+            gmbPostDetails = {
+                businessName: content.businessName,
+                summary: content.postContent,
+                callToAction: content.callToAction,
+            };
+            break;
     }
 
     return {
@@ -48,6 +62,8 @@ export const constructMakePayload = (content: GeneratedContent, scheduleTime: Da
         scheduleTime: scheduleTime ? scheduleTime.toISOString() : undefined,
         strategyData,
         voiceDialog,
+        postTypeIdentifier: content.type,
+        gmbPostDetails,
     };
 };
 

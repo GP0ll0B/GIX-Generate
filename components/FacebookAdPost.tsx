@@ -1,4 +1,6 @@
 
+
+
 import React from 'react';
 import { GeneratedContent } from '../constants';
 import { Button } from './ui/Button';
@@ -7,16 +9,18 @@ import { PlatformDetails } from './PlatformDetails';
 import { PostHeader } from './PostHeader';
 import { Loader } from './ui/Loader';
 import { SparklesIcon } from './ui/icons';
+import { BrandReviewPanel } from './BrandReviewPanel';
 
 interface FacebookAdPostProps {
   post: Extract<GeneratedContent, { type: 'ad' }>;
   isGeneratingImage: boolean;
   onGenerateImage: () => void;
   onPromptChange: (newPrompt: string) => void;
+  onReview: () => void;
 }
 
 export const FacebookAdPost: React.FC<FacebookAdPostProps> = ({ 
-  post, isGeneratingImage, onGenerateImage, onPromptChange 
+  post, isGeneratingImage, onGenerateImage, onPromptChange, onReview 
 }) => {
   const isFinalImage = post.imageUrl && post.imageUrl.startsWith('data:');
 
@@ -84,6 +88,7 @@ export const FacebookAdPost: React.FC<FacebookAdPostProps> = ({
       <div className="p-4 sm:p-6">
         <Hashtags hashtags={post.hashtags} />
       </div>
+      <BrandReviewPanel post={post} onReview={onReview} />
       <PlatformDetails />
     </div>
   );
