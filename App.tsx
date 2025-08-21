@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { 
     PostType, GeneratedContent, ToastData, Theme, GuidedPostInput, AdCreativeInput,
-    META_ADS_HISTORY, UseCase, VoiceDialogInput, USE_CASES, Challenge, GoogleBusinessPostInput, ModelType
+    META_ADS_HISTORY, UseCase, VoiceDialogInput, USE_CASES, Challenge, GoogleBusinessPostInput, ModelType, AllianceAdInput
 } from './constants';
 import { useContentGenerator } from './hooks/useContentGenerator';
 
@@ -25,6 +25,7 @@ import BrandChatAssistant from './components/BrandChatAssistant';
 import { CommentAnalysisView } from './components/CommentAnalysisView';
 import { UseCaseSelection } from './components/layout/UseCaseSelection';
 import { CryptoSimulator } from './components/CryptoSimulator';
+import { VoiceAssistantSimulator } from './components/VoiceAssistantSimulator';
 
 // =================================================================
 // THEME TOGGLE COMPONENT
@@ -84,6 +85,12 @@ const App: React.FC = () => {
       callToAction: 'Learn More',
       requiredKeywords: '',
       bannedWords: '',
+  });
+  const [allianceAdInput, setAllianceAdInput] = useState<AllianceAdInput>({
+      keystone: '',
+      coreMessage: '',
+      targetAudience: '',
+      callToAction: 'Learn More',
   });
    const [voiceDialogInput, setVoiceDialogInput] = useState<VoiceDialogInput>({
     dialogType: 'Send Text Message',
@@ -238,6 +245,7 @@ AikoInfinity exists to unlock human potential, foster global collaboration, and 
     setVideoInputImage(null);
     setGuidedInput({ monetizationFeature: 'Stars', targetAudience: 'General Creators', keyTip: '' });
     setAdCreativeInput({ productOrService: '', targetAudience: '', callToAction: 'Learn More', requiredKeywords: '', bannedWords: ''});
+    setAllianceAdInput({ keystone: '', coreMessage: '', targetAudience: '', callToAction: 'Learn More' });
     setGoogleBusinessPostInput({ businessName: '', postGoal: 'Announce something new', keyInfo: '', callToAction: 'Learn more' });
     setVoiceDialogInput({ dialogType: 'Send Text Message', scenario: '' });
     setCommentsText('');
@@ -253,6 +261,9 @@ AikoInfinity exists to unlock human potential, foster global collaboration, and 
     }
      if (useCase.targetPostType === 'brand_chat') {
         startNewChat(brandContext);
+    }
+     if (useCase.targetPostType === 'alliance_ad') {
+        setAllianceAdInput(prev => ({ ...prev, keystone: useCase.initialPrompt || ''}))
     }
 
     // Switch view
@@ -279,6 +290,7 @@ AikoInfinity exists to unlock human potential, foster global collaboration, and 
       url,
       guidedInput,
       adCreativeInput,
+      allianceAdInput,
       voiceDialogInput,
       googleBusinessPostInput,
       videoInputImage,
@@ -289,7 +301,7 @@ AikoInfinity exists to unlock human potential, foster global collaboration, and 
     });
   }, [
     generatePosts, postType, topic, url, guidedInput,
-    adCreativeInput, voiceDialogInput, googleBusinessPostInput, videoInputImage, commentsText, numVariations, temperature, model
+    adCreativeInput, allianceAdInput, voiceDialogInput, googleBusinessPostInput, videoInputImage, commentsText, numVariations, temperature, model
   ]);
   
   const handleSelectInspiration = (prompt: string, postType: PostType = 'text') => {
@@ -321,7 +333,7 @@ AikoInfinity exists to unlock human potential, foster global collaboration, and 
 
   const currentPost = contentVariations.length > 0 ? contentVariations[currentVariationIndex] : null;
 
-  const showTwoColumnLayout = currentView === 'generator' && !['strategy', 'gantt', 'all_tools', 'professional_dashboard', 'skills_dashboard', 'math_equation', 'json_workflow', 'brand_chat', 'comment_analysis', 'crypto_simulator'].includes(postType);
+  const showTwoColumnLayout = currentView === 'generator' && !['strategy', 'gantt', 'all_tools', 'professional_dashboard', 'skills_dashboard', 'math_equation', 'json_workflow', 'brand_chat', 'comment_analysis', 'crypto_simulator', 'stella_assistant'].includes(postType);
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
@@ -389,6 +401,8 @@ AikoInfinity exists to unlock human potential, foster global collaboration, and 
                             setGuidedInput={setGuidedInput}
                             adCreativeInput={adCreativeInput}
                             setAdCreativeInput={setAdCreativeInput}
+                            allianceAdInput={allianceAdInput}
+                            setAllianceAdInput={setAllianceAdInput}
                             googleBusinessPostInput={googleBusinessPostInput}
                             setGoogleBusinessPostInput={setGoogleBusinessPostInput}
                             voiceDialogInput={voiceDialogInput}
@@ -485,6 +499,11 @@ AikoInfinity exists to unlock human potential, foster global collaboration, and 
                                     analysisResult={currentPost?.type === 'comment_analysis' ? currentPost.analysis : null}
                                     error={error}
                                 />
+                            </div>
+                        )}
+                        {postType === 'stella_assistant' && (
+                            <div className="max-w-4xl mx-auto">
+                                <VoiceAssistantSimulator />
                             </div>
                         )}
                         {postType === 'strategy' && (

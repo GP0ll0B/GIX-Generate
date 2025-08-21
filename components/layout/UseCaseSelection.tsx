@@ -5,7 +5,7 @@ import { UseCaseCard } from '../ui/UseCaseCard';
 import { 
     DocumentTextIcon, MegaphoneIcon, VideoCameraIcon, 
     LightBulbIcon, FileJsonIcon, ChartBarIcon, 
-    GridIcon, CubeIcon, WorkflowIcon, ChatBubbleIcon, UsersIcon, BuildingStorefrontIcon, LockIcon, MicrophoneIcon 
+    GridIcon, CubeIcon, WorkflowIcon, ChatBubbleIcon, UsersIcon, BuildingStorefrontIcon, LockIcon, MicrophoneIcon, HandshakeIcon 
 } from '../ui/icons';
 
 interface UseCaseSelectionProps {
@@ -14,7 +14,9 @@ interface UseCaseSelectionProps {
 
 const getIconForUseCase = (id: string): React.ReactNode => {
     if (id.includes('text') || id.includes('fact-checked') || id.includes('analysis')) return <DocumentTextIcon />;
-    if (id.includes('ad') || id.includes('guided')) return <MegaphoneIcon />;
+    if (id.includes('ad') && !id.includes('alliance')) return <MegaphoneIcon />;
+    if (id.includes('alliance')) return <HandshakeIcon />;
+    if (id.includes('guided')) return <MegaphoneIcon />;
     if (id.includes('video')) return <VideoCameraIcon />;
     if (id.includes('image')) return <LightBulbIcon />;
     if (id.includes('strategy')) return <FileJsonIcon />;
@@ -22,6 +24,7 @@ const getIconForUseCase = (id: string): React.ReactNode => {
     if (id.includes('all-tools')) return <GridIcon />;
     if (id.includes('math-equation')) return <CubeIcon />;
     if (id.includes('json-workflow')) return <WorkflowIcon />;
+    if (id.includes('stella')) return <MicrophoneIcon />;
     if (id.includes('chat') || id.includes('dialog')) return <ChatBubbleIcon />;
     if (id.includes('comment') || id.includes('dashboard')) return <UsersIcon />;
     if (id.includes('google-business')) return <BuildingStorefrontIcon />;

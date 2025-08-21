@@ -16,6 +16,7 @@ import { FacebookGeneratedVideoPost } from '../FacebookGeneratedVideoPost';
 import { FacebookVoiceDialogPost } from '../FacebookVoiceDialogPost';
 import { FacebookGuidedPost } from '../FacebookGuidedPost';
 import { GoogleBusinessPost } from '../GoogleBusinessPost';
+import { FacebookAllianceAdPost } from '../FacebookAllianceAdPost';
 
 interface PreviewStageProps {
   isLoading: boolean;
@@ -65,7 +66,7 @@ export const PreviewStage: React.FC<PreviewStageProps> = ({
         } else if (content.type === 'video') {
           const hashtagsText = content.hashtags?.join(' ') || '';
           textToCopy = `${content.title}\n\n${content.message}\n\n${hashtagsText}\n\n${SIGNATURE_TEXT_FOR_COPY}`;
-        } else if (content.type === 'image' || content.type === 'ad') {
+        } else if (content.type === 'image' || content.type === 'ad' || content.type === 'alliance_ad') {
           const hashtagsText = content.hashtags?.join(' ') || '';
           const mainText = content.type === 'image' ? content.caption : content.primaryText;
           textToCopy = `${mainText}\n\n${hashtagsText}\n\n${SIGNATURE_TEXT_FOR_COPY}`;
@@ -96,6 +97,15 @@ export const PreviewStage: React.FC<PreviewStageProps> = ({
             case 'grounded_text': return <FacebookGroundedPost post={post} onReview={onReview} />;
             case 'ad': return (
                 <FacebookAdPost 
+                    post={post}
+                    isGeneratingImage={isGeneratingImage!}
+                    onGenerateImage={onGenerateImage!}
+                    onPromptChange={onPromptChange!}
+                    onReview={onReview}
+                />
+            );
+            case 'alliance_ad': return (
+                <FacebookAllianceAdPost 
                     post={post}
                     isGeneratingImage={isGeneratingImage!}
                     onGenerateImage={onGenerateImage!}

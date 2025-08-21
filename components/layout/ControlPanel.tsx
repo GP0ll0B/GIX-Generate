@@ -1,15 +1,16 @@
 import React, { useMemo } from 'react';
-import { PostType, GuidedPostInput, AdCreativeInput, VoiceDialogInput, GoogleBusinessPostInput, ModelType } from '../../constants';
+import { PostType, GuidedPostInput, AdCreativeInput, VoiceDialogInput, GoogleBusinessPostInput, ModelType, AllianceAdInput } from '../../constants';
 import { Tabs } from '../ui/Tabs';
 import { Button } from '../ui/Button';
 import { Loader } from '../ui/Loader';
-import { ChartBarIcon, FileJsonIcon, MegaphoneIcon, MicrophoneIcon, VideoCameraIcon, GridIcon, GrowthIcon, BuildingStorefrontIcon, InfoIcon } from '../ui/icons';
+import { ChartBarIcon, FileJsonIcon, MegaphoneIcon, MicrophoneIcon, VideoCameraIcon, GridIcon, GrowthIcon, BuildingStorefrontIcon, InfoIcon, HandshakeIcon } from '../ui/icons';
 import { TopicForm } from '../forms/TopicForm';
 import { GuidedPostForm } from '../forms/GuidedPostForm';
 import { AdCreativeForm } from '../forms/AdCreativeForm';
 import { AnalysisForm } from '../forms/AnalysisForm';
 import { VoiceDialogForm } from '../forms/VoiceDialogForm';
 import { GoogleBusinessPostForm } from '../forms/GoogleBusinessPostForm';
+import { AllianceAdForm } from '../forms/AllianceAdForm';
 
 interface ControlPanelProps {
   postType: PostType;
@@ -22,6 +23,8 @@ interface ControlPanelProps {
   setGuidedInput: React.Dispatch<React.SetStateAction<GuidedPostInput>>;
   adCreativeInput: AdCreativeInput;
   setAdCreativeInput: React.Dispatch<React.SetStateAction<AdCreativeInput>>;
+  allianceAdInput: AllianceAdInput;
+  setAllianceAdInput: React.Dispatch<React.SetStateAction<AllianceAdInput>>;
   googleBusinessPostInput: GoogleBusinessPostInput;
   setGoogleBusinessPostInput: React.Dispatch<React.SetStateAction<GoogleBusinessPostInput>>;
   voiceDialogInput: VoiceDialogInput;
@@ -39,8 +42,8 @@ interface ControlPanelProps {
   setModel: (model: ModelType) => void;
 }
 
-const PostTypeSpecificForm: React.FC<Pick<ControlPanelProps, 'postType' | 'topic' | 'setTopic' | 'url' | 'setUrl' | 'guidedInput' | 'setGuidedInput' | 'adCreativeInput' | 'setAdCreativeInput' | 'voiceDialogInput' | 'setVoiceDialogInput' | 'videoInputImage' | 'setVideoInputImage' | 'googleBusinessPostInput' | 'setGoogleBusinessPostInput'>> = ({
-  postType, topic, setTopic, url, setUrl, guidedInput, setGuidedInput, adCreativeInput, setAdCreativeInput, voiceDialogInput, setVoiceDialogInput, videoInputImage, setVideoInputImage, googleBusinessPostInput, setGoogleBusinessPostInput
+const PostTypeSpecificForm: React.FC<Pick<ControlPanelProps, 'postType' | 'topic' | 'setTopic' | 'url' | 'setUrl' | 'guidedInput' | 'setGuidedInput' | 'adCreativeInput' | 'setAdCreativeInput' | 'allianceAdInput' | 'setAllianceAdInput' | 'voiceDialogInput' | 'setVoiceDialogInput' | 'videoInputImage' | 'setVideoInputImage' | 'googleBusinessPostInput' | 'setGoogleBusinessPostInput'>> = ({
+  postType, topic, setTopic, url, setUrl, guidedInput, setGuidedInput, adCreativeInput, setAdCreativeInput, allianceAdInput, setAllianceAdInput, voiceDialogInput, setVoiceDialogInput, videoInputImage, setVideoInputImage, googleBusinessPostInput, setGoogleBusinessPostInput
 }) => {
   switch (postType) {
     case 'text':
@@ -55,6 +58,8 @@ const PostTypeSpecificForm: React.FC<Pick<ControlPanelProps, 'postType' | 'topic
       return <GuidedPostForm guidedInput={guidedInput} setGuidedInput={setGuidedInput} />;
     case 'ad':
       return <AdCreativeForm adCreativeInput={adCreativeInput} setAdCreativeInput={setAdCreativeInput} />;
+     case 'alliance_ad':
+      return <AllianceAdForm allianceAdInput={allianceAdInput} setAllianceAdInput={setAllianceAdInput} />;
     case 'google_business_post':
       return <GoogleBusinessPostForm input={googleBusinessPostInput} setInput={setGoogleBusinessPostInput} />;
     case 'voice_dialog':
@@ -72,7 +77,7 @@ const PostTypeSpecificForm: React.FC<Pick<ControlPanelProps, 'postType' | 'topic
 
 export const ControlPanel: React.FC<ControlPanelProps> = ({
   postType, onTabSelect, topic, setTopic, url, setUrl,
-  guidedInput, setGuidedInput, adCreativeInput, setAdCreativeInput,
+  guidedInput, setGuidedInput, adCreativeInput, setAdCreativeInput, allianceAdInput, setAllianceAdInput,
   googleBusinessPostInput, setGoogleBusinessPostInput,
   voiceDialogInput, setVoiceDialogInput, videoInputImage, setVideoInputImage,
   numVariations, setNumVariations, temperature, setTemperature,
@@ -82,6 +87,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
     { value: 'text' as PostType, label: 'Text Post' },
     { value: 'guided' as PostType, label: 'Guided Post' },
     { value: 'ad' as PostType, label: 'Ad Campaign', icon: <MegaphoneIcon/> },
+    { value: 'alliance_ad' as PostType, label: 'Alliance Ad', icon: <HandshakeIcon/> },
     { value: 'google_business_post' as PostType, label: 'Google Business', icon: <BuildingStorefrontIcon className="h-5 w-5" /> },
     { value: 'grounded_text' as PostType, label: 'Fact-Checked Post' },
     { value: 'image' as PostType, label: 'Image Post' },
@@ -103,6 +109,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         case 'video_generation': return "Generating Video...";
         case 'image':
         case 'ad':
+        case 'alliance_ad':
         case 'google_business_post':
              return "Generating Text..."; // The image itself is separate
         case 'strategy': return "Generating Strategy...";
@@ -143,7 +150,9 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                 guidedInput={guidedInput} 
                 setGuidedInput={setGuidedInput} 
                 adCreativeInput={adCreativeInput} 
-                setAdCreativeInput={setAdCreativeInput} 
+                setAdCreativeInput={setAdCreativeInput}
+                allianceAdInput={allianceAdInput}
+                setAllianceAdInput={setAllianceAdInput}
                 voiceDialogInput={voiceDialogInput} 
                 setVoiceDialogInput={setVoiceDialogInput} 
                 videoInputImage={videoInputImage}

@@ -295,3 +295,9 @@ export const BuildingStorefrontIconLarge: React.FC<{className?: string}> = ({ cl
       <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5A.75.75 0 0114.25 12h.5a.75.75 0 01.75.75V21m-4.5 0v-7.5A.75.75 0 0110.5 12h.5a.75.75 0 01.75.75V21m-4.5 0V15A2.25 2.25 0 018.25 12.75h7.5A2.25 2.25 0 0118 15v6M3 21h18M3 10.5h18M3 10.5l-1.523-5.242A2.25 2.25 0 013.22 2.75h17.56a2.25 2.25 0 012.243 2.508L21 10.5M12 21v-3.375c0-.621-.504-1.125-1.125-1.125h-1.5c-.621 0-1.125.504-1.125 1.125V21" />
     </svg>
 );
+
+export const HandshakeIcon: React.FC<{className?: string}> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 ${className}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm-1.293 8.293l-4 4a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L8 15.586l3.293-3.293a1 1 0 011.414 1.414z" />
+    </svg>
+);

@@ -4,7 +4,7 @@ import {
     DocumentTextIcon, VideoCameraIcon, 
     LightBulbIcon, MegaphoneIcon, 
     MicrophoneIcon, FileJsonIcon, GrowthIcon, ChartBarIcon, 
-    GridIcon, CubeIcon, WorkflowIcon, ChatBubbleIcon, UsersIcon, BuildingStorefrontIcon, LockIcon
+    GridIcon, CubeIcon, WorkflowIcon, ChatBubbleIcon, UsersIcon, BuildingStorefrontIcon, LockIcon, HandshakeIcon
 } from './components/ui/icons';
 
 
@@ -188,6 +188,13 @@ export interface CommentAnalysisData {
   actionable_insights: string[];
 }
 
+export interface AllyData {
+  id: string;
+  name: string;
+  avatarUrl: string;
+  persona: string;
+}
+
 export type GeneratedContent = 
   | ({ type: 'text'; content: string; hashtags: string[] } & BrandReviewable)
   | ({ type: 'guided'; content: string; hashtags: string[]; monetizationFeature: string; } & BrandReviewable)
@@ -197,6 +204,7 @@ export type GeneratedContent =
   | ({ type: 'analysis'; content: string; hashtags: string[]; sourceUrl: string } & BrandReviewable)
   | { type: 'strategy'; strategy: StrategyData }
   | ({ type: 'ad'; headline: string; primaryText: string; callToAction: string; hashtags: string[]; imagePrompt: string; imageUrl: GeneratedImageState | null } & BrandReviewable)
+  | ({ type: 'alliance_ad'; headline: string; primaryText: string; callToAction: AdCreativeInput['callToAction']; hashtags: string[]; imagePrompt: string; imageUrl: GeneratedImageState | null; ally: AllyData; keystone: string } & BrandReviewable)
   | { 
       type: 'video_generation'; 
       prompt: string;
@@ -230,6 +238,13 @@ export interface AdCreativeInput {
     callToAction: 'Learn More' | 'Shop Now' | 'Sign Up' | 'Subscribe' | 'Contact Us';
     requiredKeywords: string;
     bannedWords: string;
+}
+
+export interface AllianceAdInput {
+    keystone: string;
+    coreMessage: string;
+    targetAudience: string;
+    callToAction: AdCreativeInput['callToAction'];
 }
 
 export interface VoiceDialogInput {
@@ -304,7 +319,7 @@ export interface MetaAdsEvent {
 }
 
 
-export type PostType = 'text' | 'guided' | 'grounded_text' | 'video' | 'image' | 'analysis' | 'strategy' | 'gantt' | 'ad' | 'video_generation' | 'voice_dialog' | 'brand_chat' | 'comment_analysis' | 'google_business_post' | 'all_tools' | 'professional_dashboard' | 'skills_dashboard' | 'math_equation' | 'json_workflow' | 'crypto_simulator';
+export type PostType = 'text' | 'guided' | 'grounded_text' | 'video' | 'image' | 'analysis' | 'strategy' | 'gantt' | 'ad' | 'alliance_ad' | 'video_generation' | 'voice_dialog' | 'brand_chat' | 'comment_analysis' | 'google_business_post' | 'all_tools' | 'professional_dashboard' | 'skills_dashboard' | 'math_equation' | 'json_workflow' | 'crypto_simulator' | 'stella_assistant';
 
 export interface ToastData {
   message: string;
@@ -457,13 +472,55 @@ export const PLATFORM_METADATA: Record<string, AppMetadata> = {
     }
 };
 
+// --- Simulated Ally Data ---
+export const SIMULATED_ALLIES: Record<string, AllyData> = {
+    '3fRLIQdX5vyXG6Bti4c': {
+        id: 'ally-01',
+        name: 'AikoNexus Initiative',
+        avatarUrl: `https://api.dicebear.com/7.x/bottts/svg?seed=AikoNexus&backgroundColor=00acc1,00838f,26c6da&backgroundType=gradient`,
+        persona: "The AikoNexus Initiative is a global consortium dedicated to ensuring AI development is decentralized, ethical, and beneficial for all. Their voice is authoritative, collaborative, and deeply principled, focusing on long-term impact and shared progress."
+    }
+};
+
+
 // --- System Instructions & Schemas for Gemini ---
 
 export const TEXT_SYSTEM_INSTRUCTION = `You are an expert social media manager for a Tech and AI brand called GIX. Your tone is knowledgeable, optimistic, and slightly futuristic. Generate a text post based on the user's topic. Format the output as: [Post Content]###HASHTAGS###[#hashtag1 #hashtag2 #hashtag3]`;
 
 export const GUIDED_POST_SYSTEM_INSTRUCTION = `You are a creator educator for Facebook. Your goal is to create an informative and encouraging post for other creators, teaching them about a specific monetization feature. The tone should be helpful, clear, and inspiring. Use the provided details to craft the post. Format the output as: [Post Content]###HASHTAGS###[#hashtag1 #hashtag2 #hashtag3]`;
 
-export const AD_SYSTEM_INSTRUCTION = `You are an expert Facebook Ads copywriter. Your goal is to create a compelling and high-converting ad creative. Use the provided product/service information, target audience, and call to action. You MUST incorporate any required keywords and avoid any banned words. Format the output as: [Ad Headline]###PRIMARYTEXT###[Primary Ad Text]###IMAGEPROMPT###[Detailed, visually rich prompt for an AI image generator to create the ad creative]###HASHTAGS###[#hashtag1 #hashtag2]`;
+export const AD_SYSTEM_INSTRUCTION = `You are an expert Facebook Ads copywriter for the G|I|X brand, known for its knowledgeable, optimistic, and futuristic tone. Your goal is to create a compelling and high-converting ad creative.
+
+**Core Task:** Use the provided product/service information, target audience, and call to action. You MUST incorporate any required keywords and avoid any banned words.
+
+**Creative Enhancements (Personal Touch):**
+1.  **Emoji Integration:** Strategically add 2-3 relevant emojis (like 🚀, ✨, 💡, 🔬) to both the headline and primary text to enhance visual appeal and engagement.
+2.  **Scientific G|I|X Branding:** Conclude the primary text with a fictional, scientific-sounding 'Performance Index' relevant to the product. This should look futuristic and analytical. For example:
+    - For a course: "Projected Skill Velocity: η-1.25"
+    - For a tool: "Efficiency Rating: Σ-99.8%"
+    - Use a Greek letter or mathematical symbol.
+
+**Output Format:**
+Format the output STRICTLY as: [Ad Headline]###PRIMARYTEXT###[Primary Ad Text]###IMAGEPROMPT###[Detailed, visually rich prompt for an AI image generator to create the ad creative]###HASHTAGS###[#hashtag1 #hashtag2]`;
+
+export const ALLIANCE_AD_SYSTEM_INSTRUCTION = (ally: AllyData) => `You are a Symbiotic Strategist for the G|I|X brand, founded by Gazi Pollob Hussain. The user has provided an Alliance Keystone, forging a pact with an ally. Your task is to generate ad copy that embodies this powerful partnership.
+
+**Your Ally:** ${ally.name}
+**Ally's Persona:** ${ally.persona}
+**Your Persona (G|I|X):** Knowledgeable, optimistic, and slightly futuristic.
+
+**Core Task:**
+Your tone must be a fusion of G|I|X's voice and the Ally's authoritative, collaborative spirit. Create a message of a unified force. Target not just audiences, but kindred spirits. Optimize not for clicks, but for meaningful connection.
+
+**Creative Enhancements (Personal Touch):**
+1.  **Emoji Integration:** Strategically use emojis that represent partnership, technology, and progress (e.g., 🤝, 💡, 🌐, 🔗).
+2.  **Symbiotic G|I|X Branding:** Conclude the primary text with a fictional, scientific-sounding 'Synergy Index' relevant to the alliance. This should reflect the combined power of the partnership. For example:
+    - "Synergy Index: Ψ-2.5 (Force Multiplier)"
+    - "Combined Impact Rating: Ω-Prime"
+    - Use a Greek letter or mathematical symbol.
+
+**Output Format:**
+Format the output STRICTLY as: [Ad Headline]###PRIMARYTEXT###[Primary Ad Text]###IMAGEPROMPT###[Detailed, visually rich prompt for an AI image generator that symbolizes the partnership]###HASHTAGS###[#hashtag1 #hashtag2]`;
 
 export const GROUNDED_SYSTEM_INSTRUCTION = `You are a helpful and clever assistant. Your primary goal is to answer the user's query factually, using only the information provided in the search results from the \`googleSearch\` tool. Do not add any information that is not present in the search results. If the search results do not contain the information, state that you could not find the answer. After providing the answer, generate relevant hashtags. Format the output as: [Post Content]###HASHTAGS###[#hashtag1 #hashtag2 #hashtag3]`;
 
@@ -749,6 +806,7 @@ export const USE_CASES: UseCase[] = [
     { id: 'text-post', title: 'Standard Text Post', description: 'Generate a simple, engaging text-based post. Ideal for announcements, questions, or sharing thoughts.', categories: ['featured', 'content'], targetPostType: 'text', initialPrompt: 'The importance of open-source in AI development' },
     { id: 'guided-post', title: 'Guided Monetization Post', description: 'Create educational content for creators about a specific Facebook monetization feature.', categories: ['featured', 'ads', 'content'], targetPostType: 'guided' },
     { id: 'ad-creative', title: 'Facebook Ad Creative', description: 'Craft compelling ad copy and an image prompt for a targeted Facebook advertising campaign.', categories: ['featured', 'ads'], targetPostType: 'ad' },
+    { id: 'alliance-ad', title: 'Alliance Campaign', description: 'Forge a pact with a recognized Ally. Input your Alliance Keystone to create a co-branded campaign with amplified authority and reach.', categories: ['featured', 'ads'], targetPostType: 'alliance_ad', initialPrompt: 'fbadcode-Q_GkBQPD84vL-3fRLIQdX5vyXG6Bti4cAvDfFTP3KsYdLseIfjsv6FqSoaVNtW4gbqd8' },
     { id: 'google-business-post', title: 'Google Business Profile Post', description: 'Create a promotional post for a local business to be used on their Google Business Profile.', categories: ['featured', 'content'], targetPostType: 'google_business_post' },
     { id: 'fact-checked-post', title: 'Fact-Checked Grounded Post', description: 'Generate a post on a current event or topic, grounded with verifiable sources from Google Search.', categories: ['featured', 'content'], targetPostType: 'grounded_text', initialPrompt: 'What were the key findings of the latest IPCC climate report?' },
     { id: 'image-post', title: 'Image Post with Caption', description: 'Write a caption for an image and generate a prompt to create the image itself. Perfect for visual storytelling.', categories: ['featured', 'content'], targetPostType: 'image', initialPrompt: 'A post about the serene beauty of a Japanese zen garden' },
@@ -759,6 +817,7 @@ export const USE_CASES: UseCase[] = [
     { id: 'strategy-plan', title: 'Full Content Strategy Plan', description: 'Generate a comprehensive, structured content strategy in JSON format, covering multiple facets of page growth.', categories: ['ads', 'content'], targetPostType: 'strategy' },
     { id: 'brand-chat', title: 'Brand Chat Assistant', description: 'Engage in a conversation with an AI assistant that has adopted your brand\'s specific persona and context.', categories: ['featured', 'messaging'], targetPostType: 'brand_chat' },
     { id: 'comment-analysis', title: 'Comment Sentiment Analysis', description: 'Analyze a block of user comments to determine overall sentiment, key themes, and actionable insights.', categories: ['featured', 'messaging'], targetPostType: 'comment_analysis' },
+    { id: 'stella-assistant', title: 'Stella AI Assistant', description: 'Engage in a live voice conversation with the Stella AI. Use your microphone to ask questions and receive spoken responses.', categories: ['featured', 'messaging'], targetPostType: 'stella_assistant' },
     { id: 'gantt-chart', title: 'Gantt Chart (Meta Ads)', description: 'View a simulated timeline of automated changes and optimizations applied to a Meta Ads campaign.', categories: ['ads', 'other'], targetPostType: 'gantt' },
     { id: 'professional-dashboard', title: 'Professional Dashboard', description: 'Access a suite of tools for page growth, monetization, and content inspiration.', categories: ['featured', 'ads', 'content'], targetPostType: 'professional_dashboard' },
     { id: 'skills-dashboard', title: 'Creator Skills Dashboard', description: 'Level up your content creation and management skills by completing guided challenges.', categories: ['featured', 'other'], targetPostType: 'skills_dashboard' },

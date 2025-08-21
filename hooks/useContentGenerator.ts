@@ -1,14 +1,10 @@
-
-
-
-
 import { useState, useCallback } from 'react';
 import { GoogleGenAI, Chat } from "@google/genai";
 import { 
-    PostType, GeneratedContent, GuidedPostInput, AdCreativeInput, Source, VoiceDialogInput, ChatMessage, GoogleBusinessPostInput, ModelType,
+    PostType, GeneratedContent, GuidedPostInput, AdCreativeInput, Source, VoiceDialogInput, ChatMessage, GoogleBusinessPostInput, ModelType, AllianceAdInput, SIMULATED_ALLIES,
     TEXT_SYSTEM_INSTRUCTION, GUIDED_POST_SYSTEM_INSTRUCTION, GROUNDED_SYSTEM_INSTRUCTION,
     VIDEO_SYSTEM_INSTRUCTION, IMAGE_POST_SYSTEM_INSTRUCTION, ANALYSIS_POST_SYSTEM_INSTRUCTION,
-    STRATEGY_SYSTEM_INSTRUCTION, STRATEGY_SCHEMA, AD_SYSTEM_INSTRUCTION, VOICE_DIALOG_SYSTEM_INSTRUCTION, VOICE_DIALOG_SCHEMA,
+    STRATEGY_SYSTEM_INSTRUCTION, STRATEGY_SCHEMA, AD_SYSTEM_INSTRUCTION, ALLIANCE_AD_SYSTEM_INSTRUCTION, VOICE_DIALOG_SYSTEM_INSTRUCTION, VOICE_DIALOG_SCHEMA,
     BRAND_CHAT_SYSTEM_INSTRUCTION, COMMENT_ANALYSIS_SYSTEM_INSTRUCTION, COMMENT_ANALYSIS_SCHEMA, GOOGLE_BUSINESS_POST_SYSTEM_INSTRUCTION,
     BRAND_ALIGNMENT_SYSTEM_INSTRUCTION, BRAND_ALIGNMENT_SCHEMA
 } from '../constants';
@@ -25,6 +21,7 @@ export interface GeneratePostsParams {
     url: string;
     guidedInput: GuidedPostInput;
     adCreativeInput: AdCreativeInput;
+    allianceAdInput: AllianceAdInput;
     voiceDialogInput: VoiceDialogInput;
     googleBusinessPostInput: GoogleBusinessPostInput;
     videoInputImage: { data: string; type: string; } | null;
@@ -37,7 +34,7 @@ export interface GeneratePostsParams {
 const generateAndParseSinglePost = async (
     params: Omit<GeneratePostsParams, 'numVariations' | 'videoInputImage'>
 ): Promise<GeneratedContent> => {
-    const { postType, topic, url, guidedInput, adCreativeInput, voiceDialogInput, googleBusinessPostInput, temperature, commentsText, model } = params;
+    const { postType, topic, url, guidedInput, adCreativeInput, allianceAdInput, voiceDialogInput, googleBusinessPostInput, temperature, commentsText, model } = params;
     
     let contents = '';
     const config: {
@@ -62,6 +59,19 @@ const generateAndParseSinglePost = async (
             if (adCreativeInput.requiredKeywords) contents += `\nRequired Keywords: ${adCreativeInput.requiredKeywords}`;
             if (adCreativeInput.bannedWords) contents += `\nBanned Words: ${adCreativeInput.bannedWords}`;
             config.systemInstruction = AD_SYSTEM_INSTRUCTION;
+            break;
+        case 'alliance_ad':
+            const keystone = allianceAdInput.keystone;
+            if (!keystone.startsWith('fbadcode-') || keystone.length < 9 + 12 + 1 + 19 + 1) {
+                throw new Error("Invalid or incomplete Alliance Keystone.");
+            }
+            const allyCypher = keystone.substring(9 + 12 + 1, 9 + 12 + 1 + 19);
+            const ally = SIMULATED_ALLIES[allyCypher];
+            if (!ally) {
+                throw new Error("Alliance Keystone is not recognized. The Ally's Cypher is unknown.");
+            }
+            contents = `Core Message: "${allianceAdInput.coreMessage}"\nTarget Audience: "${allianceAdInput.targetAudience}"\nCall to Action: "${allianceAdInput.callToAction}"`;
+            config.systemInstruction = ALLIANCE_AD_SYSTEM_INSTRUCTION(ally);
             break;
         case 'grounded_text':
             contents = `Using the available search results, generate a fact-checked post about: ${topic}`;
@@ -150,7 +160,7 @@ const generateAndParseSinglePost = async (
             return { type: 'analysis', content: mainContent.trim(), sourceUrl: url, hashtags, ...brandAlignmentProps };
         case 'strategy':
             return { type: 'strategy', strategy: JSON.parse(rawText.trim()) };
-        case 'ad':
+        case 'ad': {
             const [headlineAndPrimaryText, adImagePrompt] = mainContent.split('###IMAGEPROMPT###');
             const [headline, primaryText] = headlineAndPrimaryText.split('###PRIMARYTEXT###');
             return { 
@@ -163,6 +173,25 @@ const generateAndParseSinglePost = async (
                 imageUrl: 'prompt_ready',
                 ...brandAlignmentProps
             };
+        }
+        case 'alliance_ad': {
+            const [headlineAndPrimaryText, adImagePrompt] = mainContent.split('###IMAGEPROMPT###');
+            const [headline, primaryText] = headlineAndPrimaryText.split('###PRIMARYTEXT###');
+            const allyCypher = allianceAdInput.keystone.substring(9 + 12 + 1, 9 + 12 + 1 + 19);
+            const ally = SIMULATED_ALLIES[allyCypher];
+             return { 
+                type: 'alliance_ad', 
+                headline: headline.trim(), 
+                primaryText: (primaryText || '').trim(), 
+                callToAction: allianceAdInput.callToAction, 
+                hashtags,
+                imagePrompt: (adImagePrompt || '').trim(),
+                imageUrl: 'prompt_ready',
+                ally,
+                keystone: allianceAdInput.keystone,
+                ...brandAlignmentProps
+            };
+        }
         case 'voice_dialog':
             const parsedDialog = JSON.parse(rawText.trim());
             return { type: 'voice_dialog', dialogType: voiceDialogInput.dialogType, scenario: voiceDialogInput.scenario, dialog: parsedDialog.dialog };
@@ -335,7 +364,7 @@ export const useContentGenerator = ({ showToast, brandContext }: UseContentGener
         setContentVariations(prev => {
             const newVariations = [...prev];
             const currentPost = newVariations[currentVariationIndex];
-            if (currentPost && (currentPost.type === 'image' || currentPost.type === 'ad' || currentPost.type === 'google_business_post')) {
+            if (currentPost && (currentPost.type === 'image' || currentPost.type === 'ad' || currentPost.type === 'google_business_post' || currentPost.type === 'alliance_ad')) {
                 const updatedPost = { ...currentPost, imagePrompt: newPrompt };
                 newVariations[currentVariationIndex] = updatedPost;
             }
@@ -345,7 +374,7 @@ export const useContentGenerator = ({ showToast, brandContext }: UseContentGener
     
     const handleFinalImageGeneration = useCallback(async () => {
         const currentPost = contentVariations[currentVariationIndex];
-        if (!currentPost || (currentPost.type !== 'image' && currentPost.type !== 'ad' && currentPost.type !== 'google_business_post')) {
+        if (!currentPost || (currentPost.type !== 'image' && currentPost.type !== 'ad' && currentPost.type !== 'google_business_post' && currentPost.type !== 'alliance_ad')) {
             return;
         }
 
@@ -363,7 +392,7 @@ export const useContentGenerator = ({ showToast, brandContext }: UseContentGener
             setContentVariations(prev => {
                 const newVariations = [...prev];
                 const postToUpdate = newVariations[currentVariationIndex];
-                if (postToUpdate && (postToUpdate.type === 'image' || postToUpdate.type === 'ad' || postToUpdate.type === 'google_business_post')) {
+                if (postToUpdate && (postToUpdate.type === 'image' || postToUpdate.type === 'ad' || postToUpdate.type === 'google_business_post' || postToUpdate.type === 'alliance_ad')) {
                     const updatedPost = { ...postToUpdate, imageUrl: imageUrl };
                     newVariations[currentVariationIndex] = updatedPost;
                 }
@@ -407,6 +436,7 @@ export const useContentGenerator = ({ showToast, brandContext }: UseContentGener
                 textToAnalyze = postToReview.caption;
                 break;
             case 'ad':
+            case 'alliance_ad':
                 textToAnalyze = `Headline: ${postToReview.headline}\n\n${postToReview.primaryText}`;
                 break;
             case 'google_business_post':

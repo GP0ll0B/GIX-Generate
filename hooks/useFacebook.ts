@@ -165,6 +165,7 @@ export const FacebookProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             case 'text':
             case 'grounded_text':
             case 'analysis':
+            case 'guided':
                 message = `${content.content}\n\n${hashtagsText}`;
                 break;
             case 'video':
@@ -177,7 +178,17 @@ export const FacebookProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                 }
                 break;
             case 'ad':
-                message = `**${content.headline}**\n\n${content.primaryText}\n\nCall to Action: ${content.callToAction}\n\n${hashtagsText}`;
+            case 'alliance_ad':
+                message = `${content.headline}\n\n${content.primaryText}\n\nCall to Action: ${content.callToAction}\n\n${hashtagsText}`;
+                 if (content.imageUrl && content.imageUrl.startsWith('data:image/jpeg;base64,')) {
+                    imageBase64 = content.imageUrl.split(',')[1];
+                }
+                break;
+            case 'google_business_post':
+                 message = `${content.postContent}\n\nCall to Action: ${content.callToAction}`;
+                 if (content.imageUrl && content.imageUrl.startsWith('data:image/jpeg;base64,')) {
+                    imageBase64 = content.imageUrl.split(',')[1];
+                }
                 break;
         }
         
@@ -205,10 +216,17 @@ export const FacebookProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             return result;
         } catch (error: any) {
             console.error("Failed to publish to Facebook:", error);
-            const errorMessage = error.message || "An unknown error occurred during publishing.";
+            
+            let errorMessage = "An unknown error occurred during publishing.";
+            if (error instanceof Error) {
+                errorMessage = error.message;
+            } else if (error && typeof error === 'object' && error.message) {
+                errorMessage = String(error.message);
+            }
+
             setPublishError(errorMessage);
             
-            if (error?.type === 'OAuthException' || error?.code === 190 || (error?.message && error.message.includes('Session has expired'))) {
+            if (error?.type === 'OAuthException' || error?.code === 190 || (errorMessage && errorMessage.includes('Session has expired'))) {
                 setLoginError("Your access token is invalid or has expired. Please connect again.");
                 setIsLoggedIn(false);
                 setUser(null);
