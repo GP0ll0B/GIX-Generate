@@ -1,5 +1,4 @@
 
-
 import React, { useState } from 'react';
 import { GeneratedContent, SIGNATURE_HTML_FOR_TEXT_POST, Source } from '../constants';
 import { ChevronDownIcon, LinkIcon } from './ui/icons';
@@ -8,6 +7,7 @@ import { PlatformDetails } from './PlatformDetails';
 import { PostHeader } from './PostHeader';
 import { SignatureBlock } from './SignatureBlock';
 import { BrandReviewPanel } from './BrandReviewPanel';
+import { ScientificTakeaway } from './ScientificTakeaway';
 
 interface FacebookGroundedPostProps {
   post: Extract<GeneratedContent, { type: 'grounded_text' }>;
@@ -76,6 +76,7 @@ export const FacebookGroundedPost: React.FC<FacebookGroundedPostProps> = ({ post
         <SignatureBlock html={SIGNATURE_HTML_FOR_TEXT_POST} />
       </div>
       <Sources sources={post.sources} />
+      <ScientificTakeaway />
       <BrandReviewPanel post={post} onReview={onReview} />
       <PlatformDetails />
     </div>

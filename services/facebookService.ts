@@ -6,7 +6,7 @@ const isHttps = (): boolean => {
 
 export const getPageDetails = async (pageId: string, accessToken: string): Promise<{ name: string, picture?: { data: { url: string } } }> => {
     try {
-        const res = await fetch(`https://graph.facebook.com/v19.0/${pageId}?fields=name,picture&access_token=${accessToken}`);
+        const res = await fetch(`https://graph.facebook.com/v21.0/${pageId}?fields=name,picture&access_token=${accessToken}`);
         const data = await res.json();
         if (data.error) throw new Error(data.error.message);
         return data;
@@ -35,7 +35,7 @@ export const initFacebookSdk = (appId: string | undefined): Promise<void> => {
                     appId: appId,
                     cookie: true,
                     xfbml: true,
-                    version: 'v19.0'
+                    version: 'v21.0'
                 });
             } else {
                  console.warn("Facebook App ID is not configured. The Facebook login feature will be unavailable.");
@@ -137,7 +137,7 @@ const publishTextPost = async ({ page, message, scheduledPublishTime }: Omit<Pub
     }
 
     try {
-        const res = await fetch(`https://graph.facebook.com/v19.0/${page.id}/feed`, {
+        const res = await fetch(`https://graph.facebook.com/v21.0/${page.id}/feed`, {
             method: 'POST',
             body: params,
         });
@@ -168,7 +168,7 @@ const publishPhoto = async ({ page, caption, scheduledPublishTime, imageBase64 }
     }
     
     try {
-        const res = await fetch(`https://graph.facebook.com/v19.0/${page.id}/photos`, {
+        const res = await fetch(`https://graph.facebook.com/v21.0/${page.id}/photos`, {
             method: 'POST',
             body: formData,
         });
@@ -193,7 +193,7 @@ export const publishPost = async ({ page, message, scheduledPublishTime, imageBa
 
 export const verifyManualToken = async (token: string, pageId: string): Promise<{ name: string, picture?: { data: { url: string }}}> => {
     try {
-        const res = await fetch(`https://graph.facebook.com/v19.0/${pageId}?fields=name,picture&access_token=${token}`);
+        const res = await fetch(`https://graph.facebook.com/v21.0/${pageId}?fields=name,picture&access_token=${token}`);
         const data = await res.json();
         if (data.error || !data.name) {
             throw new Error(data.error?.message || 'Invalid Token or Page ID. The token may have expired or lacks permissions for this Page.');

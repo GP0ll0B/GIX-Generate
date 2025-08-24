@@ -1,4 +1,7 @@
 
+
+
+
 import React, { useState, useRef, useEffect } from 'react';
 import { ChatMessage } from '../constants';
 import { Button } from './ui/Button';
@@ -68,7 +71,7 @@ const BrandChatAssistant: React.FC<BrandChatAssistantProps> = ({
             {/* Context Editor */}
             <div className="p-4 sm:p-6 border-b border-gray-200/50 dark:border-gray-700/50">
                  <label htmlFor="brand-context" className="font-bold text-gray-800 dark:text-gray-200 flex items-center gap-2">
-                    <SparklesIcon />
+                    <SparklesIcon className="h-5 w-5 text-yellow-500 flex-shrink-0" />
                     Brand Persona & Context
                 </label>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 mb-2">Define the AI's personality, knowledge, and rules. Press "New Chat" to apply changes.</p>

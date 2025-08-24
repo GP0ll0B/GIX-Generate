@@ -4,7 +4,7 @@ import { PostType } from '../../constants';
 interface TopicFormProps {
     topic: string;
     setTopic: (topic: string) => void;
-    postType: Extract<PostType, 'text' | 'grounded_text' | 'image' | 'video' | 'video_generation'>;
+    postType: Extract<PostType, 'text' | 'grounded_text' | 'image' | 'video' | 'video_generation' | 'blog'>;
     videoInputImage: { data: string; type: string; } | null;
     setVideoInputImage: (image: { data: string; type: string; } | null) => void;
 }
@@ -15,7 +15,8 @@ export const TopicForm: React.FC<TopicFormProps> = ({ topic, setTopic, postType,
         grounded_text: "e.g., Who won the 2024 Nobel Prize in Physics?",
         image: "e.g., A post about the beauty of bioluminescent fungi",
         video: "e.g., A motivational message for aspiring developers",
-        video_generation: "e.g., A high-speed drone flight through a futuristic city"
+        video_generation: "e.g., A high-speed drone flight through a futuristic city",
+        blog: "e.g., An 800-word article on the future of AI in personalized medicine",
     };
 
     const handleFileChange = useCallback((files: FileList | null) => {

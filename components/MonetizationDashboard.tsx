@@ -4,6 +4,7 @@ import { MONETIZATION_TOOLS_DATA, PAYOUT_DATA, MonetizationTool } from '../const
 import { 
     ArrowLeftIcon, ChartPieIcon, StarIcon, PlayIcon, UsersIcon, AwardIcon, CheckCircleIcon, ClockIcon 
 } from './ui/icons';
+import { AdsTxtStatusChecker } from './AdsTxtStatusChecker';
 
 interface MonetizationDashboardProps {
     onBack: () => void;
@@ -94,6 +95,9 @@ const MonetizationDashboard: React.FC<MonetizationDashboardProps> = ({ onBack })
                  })}
             </div>
             
+            {/* ads.txt Checker */}
+            <AdsTxtStatusChecker />
+
             {/* Performance Bonus */}
              <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl p-6 rounded-xl shadow-lg border border-white/20 dark:border-white/10">
                 <div className="flex items-center gap-3">

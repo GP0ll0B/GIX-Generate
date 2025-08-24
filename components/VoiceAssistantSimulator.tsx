@@ -5,6 +5,8 @@ import { ChatMessage, STELLA_LIVE_SYSTEM_INSTRUCTION, STELLA_NLU_SYSTEM_INSTRUCT
 import { MicrophoneIcon } from './ui/icons';
 import { StellaDiagnosticsPanel } from './StellaDiagnosticsPanel';
 
+const MotionDiv = motion.div as any;
+
 // Added 'initializing' and 'uninitialized' states for clarity
 type AssistantState = 'uninitialized' | 'initializing' | 'idle' | 'listening' | 'thinking' | 'speaking' | 'error' | 'unsupported' | 'permission_denied';
 
@@ -19,7 +21,7 @@ const Orb: React.FC<{ state: AssistantState, onClick: () => void }> = ({ state, 
 
     return (
         <div className="relative flex items-center justify-center h-48 w-48">
-             <motion.div
+             <MotionDiv
                 className={`absolute rounded-full ${orbColor}`}
                 animate={{
                     scale: isListening ? [1, 1.3, 1] : 1,
@@ -31,7 +33,7 @@ const Orb: React.FC<{ state: AssistantState, onClick: () => void }> = ({ state, 
                 }}
                 style={{ width: '100%', height: '100%' }}
             />
-            <motion.div
+            <MotionDiv
                 className={`absolute rounded-full ${orbColor} opacity-20`}
                 animate={{
                      scale: isSpeaking ? [1, 1.2, 1] : 1,
@@ -56,7 +58,7 @@ const Orb: React.FC<{ state: AssistantState, onClick: () => void }> = ({ state, 
 const ChatBubble: React.FC<{ message: ChatMessage }> = ({ message }) => {
     const isUser = message.author === 'user';
     return (
-        <motion.div
+        <MotionDiv
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className={`flex items-start gap-3 ${isUser ? 'justify-end' : ''}`}
@@ -74,7 +76,7 @@ const ChatBubble: React.FC<{ message: ChatMessage }> = ({ message }) => {
                    U
                 </div>
             )}
-        </motion.div>
+        </MotionDiv>
     )
 };
 

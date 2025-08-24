@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { ArrowLeftIcon } from '../ui/icons';
 
@@ -27,7 +26,7 @@ export const Header: React.FC<HeaderProps> = ({ view, useCaseTitle, onBack }) =>
 
             {view === 'landing' || view === 'useCaseSelection' ? (
                  <p className="mt-3 text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto italic">
-                    “AikoInfinity’s state-of-the-art facilities house the world’s most advanced AI technologies, driving innovation at the frontier of intelligence.”
+                    "An interface for symbiotic intelligence, architecting a future of ethical, open, and sustainable AI."
                 </p>
             ) : view === 'generator' ? (
                 <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">

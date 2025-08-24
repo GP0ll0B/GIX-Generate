@@ -1,7 +1,3 @@
-
-
-
-
 import React, { useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { SKILLS_DATA, SkillLevel, Challenge as ChallengeType } from '../constants';
@@ -31,13 +27,6 @@ const ChallengeCard: React.FC<{
     onStart: (challenge: ChallengeType) => void;
 }> = ({ challenge, isCompleted, isLocked, onStart }) => {
     
-    const challengeCardAnimation = {
-        layout: true,
-        initial: { opacity: 0, y: 20 },
-        animate: { opacity: 1, y: 0 },
-        exit: { opacity: 0 },
-    };
-    
     const cardStateClasses = isCompleted 
         ? 'bg-green-500/10 dark:bg-green-900/20 border-green-500/20' 
         : isLocked 
@@ -46,7 +35,10 @@ const ChallengeCard: React.FC<{
 
     return (
         <motion.div
-            {...challengeCardAnimation as any}
+            layout
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
             className={`p-5 rounded-xl shadow-md transition-all duration-300 border ${cardStateClasses}`}
         >
             <div className="flex flex-col h-full">
@@ -111,16 +103,6 @@ const SkillsDashboard: React.FC<SkillsDashboardProps> = ({ completedChallenges, 
 
     const progressPercentage = totalChallengesInLevel > 0 ? (levelProgress / totalChallengesInLevel) * 100 : 0;
 
-    const progressBarAnimation = {
-        initial: { width: 0 },
-        animate: { width: `${progressPercentage}%` },
-        transition: { duration: 0.5, ease: 'easeInOut' }
-    };
-
-    const sectionAnimation = { 
-        layout: true 
-    };
-
     return (
         <div className="animate-fade-in-fast max-w-7xl mx-auto">
              <div className="text-center mb-12">
@@ -147,7 +129,9 @@ const SkillsDashboard: React.FC<SkillsDashboardProps> = ({ completedChallenges, 
                         <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
                             <motion.div 
                                 className="bg-blue-600 h-2.5 rounded-full" 
-                                {...progressBarAnimation as any}
+                                initial={{ width: 0 }}
+                                animate={{ width: `${progressPercentage}%` }}
+                                transition={{ duration: 0.5, ease: 'easeInOut' }}
                             />
                         </div>
                     </div>
@@ -159,7 +143,7 @@ const SkillsDashboard: React.FC<SkillsDashboardProps> = ({ completedChallenges, 
                 {SKILLS_DATA.map(level => {
                     const isLevelLocked = level.level > currentLevel.level;
                     return (
-                        <motion.section key={level.level} {...sectionAnimation as any}>
+                        <motion.section key={level.level} layout>
                             <h3 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 border-b-2 border-blue-500/50 pb-2 mb-6 flex items-center gap-3">
                                 {isLevelLocked && <LockIcon />}
                                 Level {level.level}: {level.title}

@@ -8,6 +8,8 @@ export const constructMakePayload = (content: GeneratedContent, scheduleTime: Da
     let videoUrl: string | undefined = undefined;
     let voiceDialog: GeneratedContent extends { type: 'voice_dialog' } ? GeneratedContent['dialog'] : undefined;
     let gmbPostDetails: MakePostPayload['gmbPostDetails'] | undefined = undefined;
+    let ampArticleDetails: MakePostPayload['ampArticleDetails'] | undefined = undefined;
+    let seoBlogDetails: MakePostPayload['seoBlogDetails'] | undefined = undefined;
 
     switch (content.type) {
         case 'text':
@@ -23,6 +25,7 @@ export const constructMakePayload = (content: GeneratedContent, scheduleTime: Da
             break;
         case 'image':
         case 'ad':
+        case 'alliance_ad':
             caption = content.type === 'image' ? content.caption : `**${content.headline}**\n\n${content.primaryText}\n\nCTA: ${content.callToAction}`;
             hashtags = content.hashtags;
             if (content.imageUrl && content.imageUrl.startsWith('data:image/jpeg;base64,')) {
@@ -52,6 +55,42 @@ export const constructMakePayload = (content: GeneratedContent, scheduleTime: Da
                 callToAction: content.callToAction,
             };
             break;
+        case 'blog':
+            caption = `**${content.title}**\n\n${content.body}`; // Send title and markdown body
+            hashtags = content.hashtags;
+            if (content.imageUrl && content.imageUrl.startsWith('data:image/jpeg;base64,')) {
+                imageBase64 = content.imageUrl.split(',')[1];
+            }
+            break;
+        case 'monetized_article_campaign':
+            caption = content.fbPost.caption;
+            hashtags = content.fbPost.hashtags;
+            if (content.fbPost.imageUrl && content.fbPost.imageUrl.startsWith('data:image/jpeg;base64,')) {
+                imageBase64 = content.fbPost.imageUrl.split(',')[1];
+            }
+            ampArticleDetails = content.ampArticle;
+            break;
+        case 'prototype':
+            caption = `AMP Article Prototype: ${content.title}`;
+            ampArticleDetails = {
+                title: content.title,
+                ampBody: content.ampBody,
+                ctaText: content.ctaText,
+            };
+            break;
+        case 'seo_blog_post':
+            if (content.stage === 'article' && content.selectedTitle && content.body) {
+                caption = `SEO Blog Post: ${content.selectedTitle}`;
+                seoBlogDetails = {
+                    title: content.selectedTitle,
+                    metaDescription: content.metaDescription || '',
+                    tags: content.tags || [],
+                    body: content.body,
+                };
+            } else {
+                 caption = `SEO Blog Post Titles Generated`;
+            }
+            break;
     }
 
     return {
@@ -64,16 +103,12 @@ export const constructMakePayload = (content: GeneratedContent, scheduleTime: Da
         voiceDialog,
         postTypeIdentifier: content.type,
         gmbPostDetails,
+        ampArticleDetails,
+        seoBlogDetails,
     };
 };
 
 export async function sendToMakeWebhook(webhookUrl: string, payload: MakePostPayload): Promise<void> {
-  const makeApiKey = process.env.MAKE_API_KEY;
-
-  if (!makeApiKey) {
-    throw new Error("Make.com API Key is not configured in environment variables (MAKE_API_KEY).");
-  }
-  
   if (!webhookUrl.trim() || !webhookUrl.startsWith('https://hook.eu2.make.com/')) {
     throw new Error("Invalid Make.com webhook URL specified.");
   }
@@ -83,7 +118,6 @@ export async function sendToMakeWebhook(webhookUrl: string, payload: MakePostPay
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-make-apikey': makeApiKey,
       },
       body: JSON.stringify(payload),
     });

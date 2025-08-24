@@ -1,4 +1,7 @@
 
+
+
+
 import React, { useState } from 'react';
 import { GeneratedContent } from '../constants';
 import { Button } from './ui/Button';
@@ -32,13 +35,13 @@ export const BrandReviewPanel: React.FC<BrandReviewPanelProps> = ({ post, onRevi
     }
 
     let titleText = "Review for Brand Alignment";
-    let titleIcon = <SparklesIcon />;
+    let titleIcon = <SparklesIcon className="h-5 w-5 text-yellow-500 flex-shrink-0" />;
     if (brandAlignmentStatus === 'loading') {
         titleText = "Analyzing Alignment...";
         titleIcon = <Loader text="" />;
     } else if (brandAlignmentStatus === 'success' && brandAlignment) {
         titleText = `Brand Alignment Score: ${brandAlignment.score}/100`;
-        titleIcon = <SparklesIcon />;
+        titleIcon = <SparklesIcon className="h-5 w-5 text-yellow-500 flex-shrink-0" />;
     } else if (brandAlignmentStatus === 'error') {
         titleText = "Analysis Failed";
         titleIcon = <ErrorIcon />;

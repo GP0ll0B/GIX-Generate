@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { 
     PostType, GeneratedContent, ToastData, Theme, GuidedPostInput, AdCreativeInput,
-    META_ADS_HISTORY, UseCase, VoiceDialogInput, USE_CASES, Challenge, GoogleBusinessPostInput, ModelType, AllianceAdInput
+    META_ADS_HISTORY, UseCase, VoiceDialogInput, USE_CASES, Challenge, GoogleBusinessPostInput, ModelType, AllianceAdInput, AmpPrototypeInput, MonetizedArticleCampaignInput, SeoBlogInput
 } from './constants';
 import { useContentGenerator } from './hooks/useContentGenerator';
 
@@ -25,7 +25,12 @@ import BrandChatAssistant from './components/BrandChatAssistant';
 import { CommentAnalysisView } from './components/CommentAnalysisView';
 import { UseCaseSelection } from './components/layout/UseCaseSelection';
 import { CryptoSimulator } from './components/CryptoSimulator';
-import { VoiceAssistantSimulator } from './components/VoiceAssistantSimulator';
+import { VoiceAssistantSimulator } from './VoiceAssistantSimulator';
+import { AmpArticlePrototype } from './components/AmpArticlePrototype';
+import MonetizedArticleCampaignPost from './components/MonetizedArticleCampaignPost';
+import AIDataProvenanceView from './components/AIDataProvenanceView';
+import AIGuideView from './components/AIGuideView';
+import { AikoModelCard } from './components/SmolLMModelCard';
 
 // =================================================================
 // THEME TOGGLE COMPONENT
@@ -102,6 +107,24 @@ const App: React.FC = () => {
       keyInfo: '',
       callToAction: 'Learn more'
   });
+    const [ampPrototypeInput, setAmpPrototypeInput] = useState<AmpPrototypeInput>({
+        productOrService: '',
+        articleGoal: 'Drive sign-ups',
+        targetAudience: '',
+        keyPoints: '',
+    });
+     const [monetizedArticleInput, setMonetizedArticleInput] = useState<MonetizedArticleCampaignInput>({
+        productOrService: '',
+        articleGoal: 'Drive sign-ups',
+        targetAudience: '',
+        keyPoints: '',
+    });
+    const [seoBlogInput, setSeoBlogInput] = useState<SeoBlogInput>({
+        topic: '',
+        keyword: '',
+        audience: '',
+        tone: 'Knowledgeable',
+    });
   const [brandContext, setBrandContext] = useState<string>(`# The AikoInfinity Manifesto
 ### Symbiosis as Our North Star
 
@@ -194,6 +217,7 @@ AikoInfinity exists to unlock human potential, foster global collaboration, and 
     setContentVariations,
     startNewChat,
     sendChatMessage,
+    handleGenerateSeoArticle,
   } = useContentGenerator({ showToast, brandContext });
 
   // Theme management
@@ -247,6 +271,9 @@ AikoInfinity exists to unlock human potential, foster global collaboration, and 
     setAdCreativeInput({ productOrService: '', targetAudience: '', callToAction: 'Learn More', requiredKeywords: '', bannedWords: ''});
     setAllianceAdInput({ keystone: '', coreMessage: '', targetAudience: '', callToAction: 'Learn More' });
     setGoogleBusinessPostInput({ businessName: '', postGoal: 'Announce something new', keyInfo: '', callToAction: 'Learn more' });
+    setAmpPrototypeInput({ productOrService: '', articleGoal: 'Drive sign-ups', targetAudience: '', keyPoints: '' });
+    setMonetizedArticleInput({ productOrService: '', articleGoal: 'Drive sign-ups', targetAudience: '', keyPoints: '' });
+    setSeoBlogInput({ topic: '', keyword: '', audience: '', tone: 'Knowledgeable' });
     setVoiceDialogInput({ dialogType: 'Send Text Message', scenario: '' });
     setCommentsText('');
     setModel('gemini-2.5-flash');
@@ -267,12 +294,9 @@ AikoInfinity exists to unlock human potential, foster global collaboration, and 
     }
 
     // Switch view
-    if (useCase.targetPostType) {
-        setCurrentView('generator');
-    } else {
-        showToast('This use case is for informational purposes and does not have a content generator attached.', 'success');
-    }
+    setCurrentView('generator');
   };
+
 
   const handleBackToUseCases = () => {
       setCurrentView('useCaseSelection');
@@ -293,6 +317,9 @@ AikoInfinity exists to unlock human potential, foster global collaboration, and 
       allianceAdInput,
       voiceDialogInput,
       googleBusinessPostInput,
+      ampPrototypeInput,
+      monetizedArticleInput,
+      seoBlogInput,
       videoInputImage,
       commentsText,
       numVariations,
@@ -301,8 +328,15 @@ AikoInfinity exists to unlock human potential, foster global collaboration, and 
     });
   }, [
     generatePosts, postType, topic, url, guidedInput,
-    adCreativeInput, allianceAdInput, voiceDialogInput, googleBusinessPostInput, videoInputImage, commentsText, numVariations, temperature, model
+    adCreativeInput, allianceAdInput, voiceDialogInput, googleBusinessPostInput, ampPrototypeInput, monetizedArticleInput, seoBlogInput, videoInputImage, commentsText, numVariations, temperature, model
   ]);
+
+   const handleSeoArticleGeneration = useCallback((selectedTitle: string, variationIndex: number) => {
+        const content = contentVariations[variationIndex];
+        if (content?.type === 'seo_blog_post') {
+            handleGenerateSeoArticle(selectedTitle, variationIndex);
+        }
+    }, [contentVariations, handleGenerateSeoArticle]);
   
   const handleSelectInspiration = (prompt: string, postType: PostType = 'text') => {
     const targetUseCase = USE_CASES.find(uc => uc.targetPostType === postType);
@@ -333,196 +367,148 @@ AikoInfinity exists to unlock human potential, foster global collaboration, and 
 
   const currentPost = contentVariations.length > 0 ? contentVariations[currentVariationIndex] : null;
 
-  const showTwoColumnLayout = currentView === 'generator' && !['strategy', 'gantt', 'all_tools', 'professional_dashboard', 'skills_dashboard', 'math_equation', 'json_workflow', 'brand_chat', 'comment_analysis', 'crypto_simulator', 'stella_assistant'].includes(postType);
+  const showTwoColumnLayout = currentView === 'generator' && !['strategy', 'gantt', 'all_tools', 'professional_dashboard', 'skills_dashboard', 'math_equation', 'json_workflow', 'brand_chat', 'comment_analysis', 'crypto_simulator', 'stella_assistant', 'ai_data_provenance', 'ethical_protocol', 'aiko_model_card'].includes(postType);
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
-      <div className="relative flex-grow">
-        <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
-             <a
-                href="https://github.com/GP0ll0B/G-I-X-Generate"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2 rounded-full bg-gray-200/50 dark:bg-gray-700/50 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 backdrop-blur-sm"
-                aria-label="View source code on GitHub"
-                title="View source code on GitHub"
-            >
-                <GitHubIcon />
-            </a>
-            <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
-        </div>
-        <AnimatePresence>
-            {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-        </AnimatePresence>
-        <AnimatePresence>
-            {isPublishModalOpen && (
-                <PublishModal
-                    isOpen={isPublishModalOpen}
-                    onClose={() => setIsPublishModalOpen(false)}
-                    generatedContent={currentPost}
-                    showToast={showToast}
-                />
-            )}
-        </AnimatePresence>
-
-        <div className="container mx-auto px-4 py-8">
-            <Header 
-                view={currentView}
-                useCaseTitle={selectedUseCase?.title}
-                onBack={currentView === 'generator' ? handleBackToUseCases : undefined}
-            />
-            
-            <main className="mt-8">
-            <AnimatePresence mode="wait">
-                {currentView === 'landing' && (
-                  <motion.div key="landing" {...fadeAnimation as any}>
-                      <HomeScreen onSelectUseCase={handleUseCaseSelect} onNavigateToSelection={handleNavigateToSelection} showToast={showToast} />
-                  </motion.div>
-                )}
-                
-                {currentView === 'useCaseSelection' && (
-                  <motion.div key="selection" {...fadeAnimation as any}>
-                      <UseCaseSelection onSelectUseCase={handleUseCaseSelect} />
-                  </motion.div>
-                )}
-
-                {currentView === 'generator' && (
-                <motion.div key="generator" {...fadeAnimation as any}>
-                    {showTwoColumnLayout ? (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-8">
-                        <ControlPanel
-                            postType={postType}
-                            onTabSelect={setPostType}
-                            topic={topic}
-                            setTopic={setTopic}
-                            url={url}
-                            setUrl={setUrl}
-                            guidedInput={guidedInput}
-                            setGuidedInput={setGuidedInput}
-                            adCreativeInput={adCreativeInput}
-                            setAdCreativeInput={setAdCreativeInput}
-                            allianceAdInput={allianceAdInput}
-                            setAllianceAdInput={setAllianceAdInput}
-                            googleBusinessPostInput={googleBusinessPostInput}
-                            setGoogleBusinessPostInput={setGoogleBusinessPostInput}
-                            voiceDialogInput={voiceDialogInput}
-                            setVoiceDialogInput={setVoiceDialogInput}
-                            videoInputImage={videoInputImage}
-                            setVideoInputImage={setVideoInputImage}
-                            numVariations={numVariations}
-                            setNumVariations={setNumVariations}
-                            temperature={temperature}
-                            setTemperature={setTemperature}
-                            onGenerate={handleGenerateClick}
-                            isLoading={isLoading}
-                            error={error}
-                            model={model}
-                            setModel={setModel}
-                        />
-                        <PreviewStage
-                            isLoading={isLoading}
-                            isGeneratingImage={isGeneratingImage}
-                            postType={postType}
-                            contentVariations={contentVariations}
-                            currentVariationIndex={currentVariationIndex}
-                            setCurrentVariationIndex={setCurrentVariationIndex}
-                            onGenerateImage={handleFinalImageGeneration}
-                            onPromptChange={handleImagePromptChange}
-                            onPublish={() => setIsPublishModalOpen(true)}
-                            onReviewBrandAlignment={handleBrandReview}
-                            showToast={showToast}
-                        />
-                    </div>
-                    ) : (
-                    <div className="animate-fade-in-fast">
-                        {postType === 'gantt' && (
-                            <div className="max-w-5xl mx-auto">
-                            <GanttChart events={META_ADS_HISTORY} />
-                            </div>
-                        )}
-                        {postType === 'all_tools' && (
-                            <div className="max-w-7xl mx-auto">
-                                <AllToolsView />
-                            </div>
-                        )}
-                         {postType === 'math_equation' && (
-                            <div className="max-w-4xl mx-auto">
-                                <MathEquationView />
-                            </div>
-                        )}
-                        {postType === 'professional_dashboard' && (
-                            <div className="max-w-7xl mx-auto">
-                                <ProfessionalDashboard 
-                                  onSelectInspiration={handleSelectInspiration}
-                                  showToast={showToast}
-                                />
-                            </div>
-                        )}
-                        {postType === 'skills_dashboard' && (
-                            <div className="max-w-7xl mx-auto">
-                                <SkillsDashboard 
-                                    completedChallenges={completedChallenges} 
-                                    onStartChallenge={handleStartChallenge}
-                                    showToast={showToast} 
-                                />
-                            </div>
-                        )}
-                        {postType === 'json_workflow' && (
-                            <div className="max-w-7xl mx-auto">
-                                <JsonWorkflowSimulator />
-                            </div>
-                        )}
-                        {postType === 'crypto_simulator' && (
-                            <div className="max-w-7xl mx-auto">
-                                <CryptoSimulator />
-                            </div>
-                        )}
-                         {postType === 'brand_chat' && (
-                            <div className="max-w-4xl mx-auto">
-                                <BrandChatAssistant 
-                                    context={brandContext}
-                                    setContext={setBrandContext}
-                                    messages={currentPost?.type === 'brand_chat' ? currentPost.messages : []}
-                                    onSendMessage={sendChatMessage}
-                                    onNewChat={() => startNewChat(brandContext)}
-                                    isLoading={isLoading}
-                                />
-                            </div>
-                        )}
-                        {postType === 'comment_analysis' && (
-                            <div className="max-w-4xl mx-auto">
-                                <CommentAnalysisView
-                                    commentsText={commentsText}
-                                    setCommentsText={setCommentsText}
-                                    onAnalyze={handleGenerateClick}
-                                    isLoading={isLoading}
-                                    analysisResult={currentPost?.type === 'comment_analysis' ? currentPost.analysis : null}
-                                    error={error}
-                                />
-                            </div>
-                        )}
-                        {postType === 'stella_assistant' && (
-                            <div className="max-w-4xl mx-auto">
-                                <VoiceAssistantSimulator />
-                            </div>
-                        )}
-                        {postType === 'strategy' && (
-                            isLoading 
-                            ? <div className="max-w-3xl mx-auto"><PreviewStage isLoading={true} postType={postType} contentVariations={[]} currentVariationIndex={currentVariationIndex} setCurrentVariationIndex={setCurrentVariationIndex} onPublish={() => setIsPublishModalOpen(true)} onReviewBrandAlignment={handleBrandReview} showToast={showToast} /></div>
-                            : currentPost?.type === 'strategy' 
-                            ? <div className="max-w-4xl mx-auto">
-                                <FacebookStrategyPost post={currentPost} onCopy={() => showToast('Strategy JSON copied!', 'success')} onPublish={() => setIsPublishModalOpen(true)} />
-                            </div>
-                            : <div className="max-w-3xl mx-auto"><PreviewStage isLoading={false} postType={postType} contentVariations={[]} currentVariationIndex={currentVariationIndex} setCurrentVariationIndex={setCurrentVariationIndex} onPublish={() => setIsPublishModalOpen(true)} onReviewBrandAlignment={handleBrandReview} showToast={showToast} /></div>
-                        )}
-                    </div>
-                    )}
-                </motion.div>
-                )}
-            </AnimatePresence>
-            </main>
-        </div>
+    <div className={`min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 selection:bg-blue-500/20`}>
+      <AnimatePresence>
+        {toast && <Toast {...toast} onClose={() => setToast(null)} />}
+      </AnimatePresence>
+      <AnimatePresence>
+        {isPublishModalOpen && (
+          <PublishModal 
+            isOpen={isPublishModalOpen}
+            onClose={() => setIsPublishModalOpen(false)}
+            generatedContent={currentPost}
+            showToast={showToast}
+          />
+        )}
+      </AnimatePresence>
+      
+      <div className="fixed top-4 right-4 z-40 flex items-center gap-2">
+         <a href="https://github.com/GP0ll0B/G-I-X-Generate" target="_blank" rel="noopener noreferrer" aria-label="GitHub Repository" className="p-2 rounded-full bg-gray-200/50 dark:bg-gray-700/50 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 backdrop-blur-sm">
+            <GitHubIcon />
+        </a>
+        <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
       </div>
+
+      <main className="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <Header view={currentView} useCaseTitle={selectedUseCase?.title} onBack={handleBackToUseCases} />
+        
+        <div className="mt-8 sm:mt-12">
+           <AnimatePresence mode="wait">
+            {currentView === 'landing' && (
+              <motion.div key="landing" {...fadeAnimation}>
+                <HomeScreen onSelectUseCase={handleUseCaseSelect} onNavigateToSelection={handleNavigateToSelection} showToast={showToast} />
+              </motion.div>
+            )}
+             {currentView === 'useCaseSelection' && (
+              <motion.div key="useCaseSelection" {...fadeAnimation}>
+                <UseCaseSelection onSelectUseCase={handleUseCaseSelect} />
+              </motion.div>
+            )}
+            {currentView === 'generator' && (
+               <motion.div key="generator" {...fadeAnimation}>
+                 {showTwoColumnLayout ? (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                      <ControlPanel
+                          postType={postType}
+                          onTabSelect={setPostType}
+                          topic={topic}
+                          setTopic={setTopic}
+                          url={url}
+                          setUrl={setUrl}
+                          guidedInput={guidedInput}
+                          setGuidedInput={setGuidedInput}
+                          adCreativeInput={adCreativeInput}
+                          setAdCreativeInput={setAdCreativeInput}
+                           allianceAdInput={allianceAdInput}
+                          setAllianceAdInput={setAllianceAdInput}
+                          googleBusinessPostInput={googleBusinessPostInput}
+                          setGoogleBusinessPostInput={setGoogleBusinessPostInput}
+                          ampPrototypeInput={ampPrototypeInput}
+                          setAmpPrototypeInput={setAmpPrototypeInput}
+                           monetizedArticleInput={monetizedArticleInput}
+                          setMonetizedArticleInput={setMonetizedArticleInput}
+                          seoBlogInput={seoBlogInput}
+                          setSeoBlogInput={setSeoBlogInput}
+                          voiceDialogInput={voiceDialogInput}
+                          setVoiceDialogInput={setVoiceDialogInput}
+                          videoInputImage={videoInputImage}
+                          setVideoInputImage={setVideoInputImage}
+                          numVariations={numVariations}
+                          setNumVariations={setNumVariations}
+                          temperature={temperature}
+                          setTemperature={setTemperature}
+                          onGenerate={handleGenerateClick}
+                          isLoading={isLoading}
+                          error={error}
+                          model={model}
+                          setModel={setModel}
+                          currentPost={currentPost}
+                      />
+                      <PreviewStage
+                          isLoading={isLoading}
+                          isGeneratingImage={isGeneratingImage}
+                          postType={postType}
+                          contentVariations={contentVariations}
+                          currentVariationIndex={currentVariationIndex}
+                          setCurrentVariationIndex={setCurrentVariationIndex}
+                          onGenerateImage={handleFinalImageGeneration}
+                          onPromptChange={handleImagePromptChange}
+                          onPublish={() => setIsPublishModalOpen(true)}
+                          onReviewBrandAlignment={handleBrandReview}
+                          onTitleSelect={handleSeoArticleGeneration}
+                          showToast={showToast}
+                      />
+                  </div>
+                ) : (
+                    <div className="max-w-4xl mx-auto">
+                        {postType === 'strategy' && contentVariations[0]?.type === 'strategy' && (
+                            <FacebookStrategyPost 
+                                post={contentVariations[0]} 
+                                onCopy={() => showToast('Strategy JSON copied to clipboard!', 'success')}
+                                onPublish={() => setIsPublishModalOpen(true)}
+                             />
+                        )}
+                        {postType === 'gantt' && <GanttChart events={META_ADS_HISTORY} />}
+                        {postType === 'all_tools' && <AllToolsView />}
+                        {postType === 'professional_dashboard' && <ProfessionalDashboard onSelectInspiration={handleSelectInspiration} showToast={showToast} />}
+                        {postType === 'skills_dashboard' && <SkillsDashboard completedChallenges={completedChallenges} onStartChallenge={handleStartChallenge} showToast={showToast} />}
+                        {postType === 'math_equation' && <MathEquationView />}
+                        {postType === 'json_workflow' && <JsonWorkflowSimulator />}
+                        {postType === 'brand_chat' && contentVariations[0]?.type === 'brand_chat' && (
+                           <BrandChatAssistant
+                                context={brandContext}
+                                setContext={setBrandContext}
+                                messages={contentVariations[0].messages}
+                                onSendMessage={sendChatMessage}
+                                onNewChat={() => startNewChat(brandContext)}
+                                isLoading={isLoading}
+                            />
+                        )}
+                         {postType === 'comment_analysis' && (
+                            <CommentAnalysisView
+                                commentsText={commentsText}
+                                setCommentsText={setCommentsText}
+                                onAnalyze={handleGenerateClick}
+                                isLoading={isLoading}
+                                analysisResult={contentVariations[0]?.type === 'comment_analysis' ? contentVariations[0].analysis : null}
+                                error={error}
+                            />
+                        )}
+                        {postType === 'crypto_simulator' && <CryptoSimulator />}
+                        {postType === 'stella_assistant' && <VoiceAssistantSimulator />}
+                        {postType === 'ai_data_provenance' && <AIDataProvenanceView />}
+                        {postType === 'ethical_protocol' && <AIGuideView />}
+                        {postType === 'aiko_model_card' && <AikoModelCard />}
+                    </div>
+                )}
+              </motion.div>
+            )}
+           </AnimatePresence>
+        </div>
+      </main>
       <Footer />
     </div>
   );

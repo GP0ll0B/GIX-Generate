@@ -1,12 +1,12 @@
 import { useState, useCallback } from 'react';
 import { GoogleGenAI, Chat } from "@google/genai";
 import { 
-    PostType, GeneratedContent, GuidedPostInput, AdCreativeInput, Source, VoiceDialogInput, ChatMessage, GoogleBusinessPostInput, ModelType, AllianceAdInput, SIMULATED_ALLIES,
+    PostType, GeneratedContent, GuidedPostInput, AdCreativeInput, Source, VoiceDialogInput, ChatMessage, GoogleBusinessPostInput, ModelType, AllianceAdInput, SIMULATED_ALLIES, AmpPrototypeInput, MonetizedArticleCampaignInput, SeoBlogInput,
     TEXT_SYSTEM_INSTRUCTION, GUIDED_POST_SYSTEM_INSTRUCTION, GROUNDED_SYSTEM_INSTRUCTION,
     VIDEO_SYSTEM_INSTRUCTION, IMAGE_POST_SYSTEM_INSTRUCTION, ANALYSIS_POST_SYSTEM_INSTRUCTION,
     STRATEGY_SYSTEM_INSTRUCTION, STRATEGY_SCHEMA, AD_SYSTEM_INSTRUCTION, ALLIANCE_AD_SYSTEM_INSTRUCTION, VOICE_DIALOG_SYSTEM_INSTRUCTION, VOICE_DIALOG_SCHEMA,
     BRAND_CHAT_SYSTEM_INSTRUCTION, COMMENT_ANALYSIS_SYSTEM_INSTRUCTION, COMMENT_ANALYSIS_SCHEMA, GOOGLE_BUSINESS_POST_SYSTEM_INSTRUCTION,
-    BRAND_ALIGNMENT_SYSTEM_INSTRUCTION, BRAND_ALIGNMENT_SCHEMA
+    BRAND_ALIGNMENT_SYSTEM_INSTRUCTION, BRAND_ALIGNMENT_SCHEMA, BLOG_POST_SYSTEM_INSTRUCTION, AMP_PROTOTYPE_SYSTEM_INSTRUCTION, MONETIZED_ARTICLE_CAMPAIGN_SYSTEM_INSTRUCTION, SEO_TITLE_SYSTEM_INSTRUCTION, SEO_ARTICLE_SYSTEM_INSTRUCTION
 } from '../constants';
 import { generateContent, generateImage, generateVideos, getVideosOperation } from '../services/geminiService';
 
@@ -24,6 +24,9 @@ export interface GeneratePostsParams {
     allianceAdInput: AllianceAdInput;
     voiceDialogInput: VoiceDialogInput;
     googleBusinessPostInput: GoogleBusinessPostInput;
+    ampPrototypeInput: AmpPrototypeInput;
+    monetizedArticleInput: MonetizedArticleCampaignInput;
+    seoBlogInput: SeoBlogInput;
     videoInputImage: { data: string; type: string; } | null;
     commentsText: string;
     numVariations: number;
@@ -34,7 +37,7 @@ export interface GeneratePostsParams {
 const generateAndParseSinglePost = async (
     params: Omit<GeneratePostsParams, 'numVariations' | 'videoInputImage'>
 ): Promise<GeneratedContent> => {
-    const { postType, topic, url, guidedInput, adCreativeInput, allianceAdInput, voiceDialogInput, googleBusinessPostInput, temperature, commentsText, model } = params;
+    const { postType, topic, url, guidedInput, adCreativeInput, allianceAdInput, voiceDialogInput, googleBusinessPostInput, ampPrototypeInput, monetizedArticleInput, seoBlogInput, temperature, commentsText, model } = params;
     
     let contents = '';
     const config: {
@@ -86,6 +89,15 @@ const generateAndParseSinglePost = async (
             contents = `Generate a caption and image prompt for a post about: ${topic}`;
             config.systemInstruction = IMAGE_POST_SYSTEM_INSTRUCTION;
             break;
+        case 'blog':
+            contents = `Generate a blog post about: ${topic}`;
+            config.systemInstruction = BLOG_POST_SYSTEM_INSTRUCTION;
+            break;
+         case 'seo_blog_post': // Stage 1: Titles
+            contents = `Topic/Idea: "${seoBlogInput.topic}"\nPrimary Keyword: "${seoBlogInput.keyword}"\nTarget Audience: "${seoBlogInput.audience}"\nTone: "${seoBlogInput.tone}"`;
+            config.systemInstruction = SEO_TITLE_SYSTEM_INSTRUCTION;
+            config.tools = [{ googleSearch: {} }];
+            break;
         case 'analysis':
             contents = `Based on the content from the URL ${url}, fulfill this prompt: ${topic}`;
             config.systemInstruction = ANALYSIS_POST_SYSTEM_INSTRUCTION;
@@ -113,16 +125,65 @@ const generateAndParseSinglePost = async (
             contents = `Business Name: "${googleBusinessPostInput.businessName}"\nPost Goal: "${googleBusinessPostInput.postGoal}"\nKey Information: "${googleBusinessPostInput.keyInfo}"\nCall to Action: "${googleBusinessPostInput.callToAction}"`;
             config.systemInstruction = GOOGLE_BUSINESS_POST_SYSTEM_INSTRUCTION;
             break;
+        case 'prototype':
+            contents = `Product/Service: "${ampPrototypeInput.productOrService}"\nArticle Goal: "${ampPrototypeInput.articleGoal}"\nTarget Audience: "${ampPrototypeInput.targetAudience}"\nKey Points: "${ampPrototypeInput.keyPoints}"`;
+            config.systemInstruction = AMP_PROTOTYPE_SYSTEM_INSTRUCTION;
+            break;
+        case 'monetized_article_campaign':
+             contents = `Product/Service: "${monetizedArticleInput.productOrService}"\nArticle Goal: "${monetizedArticleInput.articleGoal}"\nTarget Audience: "${monetizedArticleInput.targetAudience}"\nKey Points: "${monetizedArticleInput.keyPoints}"`;
+            config.systemInstruction = MONETIZED_ARTICLE_CAMPAIGN_SYSTEM_INSTRUCTION;
+            break;
         default:
             throw new Error(`Unsupported post type for generation: ${postType}`);
     }
 
-    if (model === 'smollm-2-360m') {
-        config.systemInstruction = `[Simulation Notice: You are using the lightweight SmolLM-2 360M model. The output should be fast and concise, but may be less nuanced than larger cloud models. Adhere to this persona.]\n\n` + config.systemInstruction;
+    if (model === 'aiko-360m-instruct') {
+        config.systemInstruction = `[Simulation Notice: You are simulating the Aiko360-Instruct model. As Aiko360-Instruct, you are an ethical, succinct assistant aligned with G|I|X principles. Your output should be concise and may be less nuanced than larger cloud models. Adhere strictly to this persona.]\n\n` + config.systemInstruction;
     }
 
     const response = await generateContent('gemini-2.5-flash', contents, config);
     const rawText = response.text;
+    
+    if (postType === 'monetized_article_campaign') {
+        const parts = rawText.split(/###FB_IMAGE_PROMPT###|###FB_HASHTAGS###|###ARTICLE_TITLE###|###ARTICLE_BODY###|###ARTICLE_CTA###/);
+        
+        if (parts.length < 6) {
+            console.error("Failed to parse campaign, incorrect number of parts. Received:", parts.length, "parts. Raw text:", rawText);
+            throw new Error(`Failed to parse campaign response. Expected 6 parts, but got ${parts.length}.`);
+        }
+        
+        const [
+            fbCaption,
+            fbImagePrompt,
+            fbHashtagsString,
+            articleTitle,
+            articleBody,
+            articleCta,
+        ] = parts.map(p => p.trim());
+
+        if (!fbCaption || !fbImagePrompt || !articleTitle || !articleBody || !articleCta) {
+             throw new Error("Failed to parse campaign response. Some content parts are missing.");
+        }
+
+        const fbHashtags = fbHashtagsString ? fbHashtagsString.split(/\s+/).filter(h => h.startsWith('#')) : [];
+
+        return {
+            type: 'monetized_article_campaign',
+            fbPost: {
+                caption: fbCaption,
+                imagePrompt: fbImagePrompt,
+                hashtags: fbHashtags,
+                imageUrl: 'prompt_ready',
+            },
+            ampArticle: {
+                title: articleTitle,
+                ampBody: articleBody,
+                ctaText: articleCta,
+            },
+            brandAlignment: null,
+            brandAlignmentStatus: 'idle',
+        };
+    }
     
     if (postType === 'google_business_post') {
         const [postContent, imagePrompt] = rawText.split('###IMAGEPROMPT###');
@@ -133,6 +194,54 @@ const generateAndParseSinglePost = async (
             callToAction: googleBusinessPostInput.callToAction,
             imagePrompt: (imagePrompt || '').trim(),
             imageUrl: 'prompt_ready',
+            brandAlignment: null,
+            brandAlignmentStatus: 'idle',
+        };
+    }
+
+    if (postType === 'blog') {
+        const [title, rest] = rawText.split('###BODY###');
+        const [body, rest2] = (rest || '').split('###IMAGEPROMPT###');
+        const [imagePrompt, hashtagsString] = (rest2 || '').split('###HASHTAGS###');
+        const hashtags = hashtagsString ? hashtagsString.trim().split(/\s+/).filter(h => h.startsWith('#')) : [];
+        return {
+            type: 'blog',
+            title: title.trim(),
+            body: body.trim(),
+            imagePrompt: (imagePrompt || '').trim(),
+            imageUrl: 'prompt_ready',
+            hashtags,
+            brandAlignment: null,
+            brandAlignmentStatus: 'idle',
+        };
+    }
+    
+     if (postType === 'seo_blog_post') {
+        const titles = rawText.split('###TITLE###').map(t => t.trim()).filter(Boolean);
+        const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks as Source[] || [];
+        return {
+            type: 'seo_blog_post',
+            stage: 'titles',
+            userInput: seoBlogInput,
+            titles,
+            sources,
+            selectedTitle: null,
+            metaDescription: null,
+            tags: null,
+            body: null,
+            brandAlignment: null,
+            brandAlignmentStatus: 'idle',
+        };
+    }
+
+    if (postType === 'prototype') {
+        const [title, rest] = rawText.split('###BODY###');
+        const [ampBody, ctaText] = (rest || '').split('###CTA###');
+        return {
+            type: 'prototype',
+            title: title.trim(),
+            ampBody: (ampBody || '').trim(),
+            ctaText: (ctaText || '').trim(),
             brandAlignment: null,
             brandAlignmentStatus: 'idle',
         };
@@ -282,6 +391,69 @@ export const useContentGenerator = ({ showToast, brandContext }: UseContentGener
         }
 
     }, [chat, showToast]);
+    
+    const handleGenerateSeoArticle = useCallback(async (selectedTitle: string, variationIndex: number) => {
+        const post = contentVariations[variationIndex];
+        if (post?.type !== 'seo_blog_post') return;
+        
+        setIsLoading(true);
+        setError(null);
+        
+        // Update the state to reflect the selection and loading state
+        setContentVariations(prev => {
+            const newVariations = [...prev];
+            const currentPost = { ...newVariations[variationIndex] } as Extract<GeneratedContent, { type: 'seo_blog_post' }>;
+            currentPost.selectedTitle = selectedTitle;
+            newVariations[variationIndex] = currentPost;
+            return newVariations;
+        });
+
+        try {
+            const { userInput } = post;
+            const contents = `Chosen Title: "${selectedTitle}"\nOriginal Topic/Idea: "${userInput.topic}"\nPrimary Keyword: "${userInput.keyword}"\nTarget Audience: "${userInput.audience}"\nTone: "${userInput.tone}"`;
+            const config = {
+                systemInstruction: SEO_ARTICLE_SYSTEM_INSTRUCTION,
+                temperature: 0.7,
+            };
+            const response = await generateContent('gemini-2.5-flash', contents, config);
+            const rawText = response.text;
+            
+            const [meta, rest] = rawText.split('###TAGS###');
+            const [tagsString, body] = (rest || '').split('###BODY###');
+
+            if (!meta || !tagsString || !body) {
+                throw new Error("Failed to parse the generated article. The AI response was malformed.");
+            }
+
+            const tags = tagsString.split(',').map(t => t.trim()).filter(Boolean);
+
+            setContentVariations(prev => {
+                const newVariations = [...prev];
+                const currentPost = { ...newVariations[variationIndex] } as Extract<GeneratedContent, { type: 'seo_blog_post' }>;
+                currentPost.stage = 'article';
+                currentPost.metaDescription = meta.trim();
+                currentPost.tags = tags;
+                currentPost.body = body.trim();
+                newVariations[variationIndex] = currentPost;
+                return newVariations;
+            });
+            
+        } catch (err) {
+            const msg = err instanceof Error ? err.message : 'An unexpected error occurred.';
+            setError(msg);
+            showToast(msg, 'error');
+            // Revert state if it fails
+            setContentVariations(prev => {
+                const newVariations = [...prev];
+                 const currentPost = { ...newVariations[variationIndex] } as Extract<GeneratedContent, { type: 'seo_blog_post' }>;
+                currentPost.selectedTitle = null; // Revert selection
+                newVariations[variationIndex] = currentPost;
+                return newVariations;
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    }, [contentVariations, showToast]);
 
     const handleGeneratePost = useCallback(async (params: GeneratePostsParams) => {
         setIsLoading(true);
@@ -346,8 +518,8 @@ export const useContentGenerator = ({ showToast, brandContext }: UseContentGener
 
         try {
             const { numVariations, ...restParams } = params;
-            // Comment analysis doesn't need variations
-            const variationsToRun = params.postType === 'comment_analysis' ? 1 : numVariations;
+            // Comment analysis and SEO titles don't need variations
+            const variationsToRun = (params.postType === 'comment_analysis' || params.postType === 'seo_blog_post') ? 1 : numVariations;
             const promises = Array(variationsToRun).fill(0).map(() => generateAndParseSinglePost(restParams));
             const results = await Promise.all(promises);
             setContentVariations(results);
@@ -360,21 +532,34 @@ export const useContentGenerator = ({ showToast, brandContext }: UseContentGener
         }
     }, [showToast]);
 
-    const handleImagePromptChange = (newPrompt: string) => {
+    const handleImagePromptChange = useCallback((newPrompt: string) => {
         setContentVariations(prev => {
             const newVariations = [...prev];
             const currentPost = newVariations[currentVariationIndex];
-            if (currentPost && (currentPost.type === 'image' || currentPost.type === 'ad' || currentPost.type === 'google_business_post' || currentPost.type === 'alliance_ad')) {
-                const updatedPost = { ...currentPost, imagePrompt: newPrompt };
+            if (!currentPost) return prev;
+
+            // Create a mutable copy
+            const updatedPost = { ...currentPost };
+
+            if (updatedPost.type === 'image' || updatedPost.type === 'ad' || updatedPost.type === 'google_business_post' || updatedPost.type === 'alliance_ad' || updatedPost.type === 'blog') {
+                updatedPost.imagePrompt = newPrompt;
                 newVariations[currentVariationIndex] = updatedPost;
+            } else if (updatedPost.type === 'monetized_article_campaign') {
+                // Ensure we create a new fbPost object to avoid direct mutation
+                const newFbPost = { ...updatedPost.fbPost, imagePrompt: newPrompt };
+                const newCampaignPost = { ...updatedPost, fbPost: newFbPost };
+                newVariations[currentVariationIndex] = newCampaignPost;
             }
+            
             return newVariations;
         });
-    };
+    }, [currentVariationIndex]);
     
     const handleFinalImageGeneration = useCallback(async () => {
         const currentPost = contentVariations[currentVariationIndex];
-        if (!currentPost || (currentPost.type !== 'image' && currentPost.type !== 'ad' && currentPost.type !== 'google_business_post' && currentPost.type !== 'alliance_ad')) {
+        const postForImage = currentPost?.type === 'monetized_article_campaign' ? currentPost.fbPost : currentPost;
+
+        if (!postForImage || !('imagePrompt' in postForImage)) {
             return;
         }
 
@@ -382,7 +567,7 @@ export const useContentGenerator = ({ showToast, brandContext }: UseContentGener
         setError(null);
 
         try {
-            const imagePrompt = currentPost.imagePrompt;
+            const imagePrompt = postForImage.imagePrompt;
             if (!imagePrompt) {
                 throw new Error("Image prompt is empty.");
             }
@@ -392,9 +577,12 @@ export const useContentGenerator = ({ showToast, brandContext }: UseContentGener
             setContentVariations(prev => {
                 const newVariations = [...prev];
                 const postToUpdate = newVariations[currentVariationIndex];
-                if (postToUpdate && (postToUpdate.type === 'image' || postToUpdate.type === 'ad' || postToUpdate.type === 'google_business_post' || postToUpdate.type === 'alliance_ad')) {
+                if (postToUpdate.type === 'monetized_article_campaign') {
+                     const updatedPost = { ...postToUpdate, fbPost: { ...postToUpdate.fbPost, imageUrl } };
+                     newVariations[currentVariationIndex] = updatedPost;
+                } else if (postToUpdate && 'imageUrl' in postToUpdate) {
                     const updatedPost = { ...postToUpdate, imageUrl: imageUrl };
-                    newVariations[currentVariationIndex] = updatedPost;
+                    newVariations[currentVariationIndex] = updatedPost as any;
                 }
                 return newVariations;
             });
@@ -442,6 +630,20 @@ export const useContentGenerator = ({ showToast, brandContext }: UseContentGener
             case 'google_business_post':
                 textToAnalyze = postToReview.postContent;
                 break;
+            case 'blog':
+                textToAnalyze = `Title: ${postToReview.title}\n\n${postToReview.body}`;
+                break;
+            case 'prototype':
+                textToAnalyze = `Title: ${postToReview.title}\n\n${postToReview.ampBody}`;
+                break;
+            case 'monetized_article_campaign':
+                 textToAnalyze = `Facebook Post: ${postToReview.fbPost.caption}\n\nArticle: ${postToReview.ampArticle.title}\n${postToReview.ampArticle.ampBody}`;
+                break;
+            case 'seo_blog_post':
+                if (postToReview.stage === 'article' && postToReview.body) {
+                    textToAnalyze = `Title: ${postToReview.selectedTitle}\n\n${postToReview.body}`;
+                }
+                break;
             default:
                 console.error("This post type cannot be reviewed for brand alignment.");
                  setContentVariations(prev => {
@@ -451,8 +653,18 @@ export const useContentGenerator = ({ showToast, brandContext }: UseContentGener
                 });
                 return;
         }
+
+        if (!textToAnalyze) {
+            showToast("Not enough content to review.", "error");
+             setContentVariations(prev => {
+                const newVariations = [...prev];
+                (newVariations[variationIndex] as any).brandAlignmentStatus = 'idle';
+                return newVariations;
+            });
+            return;
+        }
         
-        const hashtagsText = 'hashtags' in postToReview ? postToReview.hashtags.join(' ') : '';
+        const hashtagsText = 'hashtags' in postToReview && postToReview.hashtags ? postToReview.hashtags.join(' ') : ('fbPost' in postToReview && postToReview.fbPost.hashtags ? postToReview.fbPost.hashtags.join(' ') : '');
         const fullContent = `${textToAnalyze}\n\n${hashtagsText}`;
 
         try {
@@ -498,5 +710,6 @@ export const useContentGenerator = ({ showToast, brandContext }: UseContentGener
         setContentVariations,
         startNewChat,
         sendChatMessage,
+        handleGenerateSeoArticle,
     };
 };

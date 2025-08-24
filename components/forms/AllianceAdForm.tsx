@@ -4,6 +4,8 @@ import { AllianceAdInput, AdCreativeInput } from '../../constants';
 import { Button } from '../ui/Button';
 import { LockIcon } from '../ui/icons';
 
+const MotionDiv = motion.div;
+
 interface AllianceAdFormProps {
     allianceAdInput: AllianceAdInput;
     setAllianceAdInput: React.Dispatch<React.SetStateAction<AllianceAdInput>>;
@@ -35,14 +37,14 @@ const validateAndParseKeystone = (keystone: string): KeystoneParts | null => {
 };
 
 const KeystonePart: React.FC<{ label: string; value: string; delay: number }> = ({ label, value, delay }) => (
-    <motion.div
+    <MotionDiv
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay }}
     >
         <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{label}</p>
         <p className="font-mono text-sm text-gray-800 dark:text-gray-200 break-all">{value}</p>
-    </motion.div>
+    </MotionDiv>
 );
 
 export const AllianceAdForm: React.FC<AllianceAdFormProps> = ({ allianceAdInput, setAllianceAdInput }) => {
@@ -95,7 +97,7 @@ export const AllianceAdForm: React.FC<AllianceAdFormProps> = ({ allianceAdInput,
 
             <AnimatePresence>
             {validatedKeystone && (
-                <motion.div 
+                <MotionDiv 
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
@@ -105,15 +107,15 @@ export const AllianceAdForm: React.FC<AllianceAdFormProps> = ({ allianceAdInput,
                     <KeystonePart label="Visionary Sigil" value={validatedKeystone.sigil} delay={0.2} />
                     <KeystonePart label="Ally's Cypher" value={validatedKeystone.cypher} delay={0.3} />
                     <KeystonePart label="Encrypted Covenant" value={validatedKeystone.covenant} delay={0.4} />
-                </motion.div>
+                </MotionDiv>
             )}
             {!validatedKeystone && !isValidating && allianceAdInput.keystone && (
-                 <motion.div 
+                 <MotionDiv 
                     initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                     className="p-3 text-center text-sm bg-red-500/10 text-red-700 dark:text-red-300 rounded-lg"
                 >
                     Invalid or incomplete Keystone provided.
-                </motion.div>
+                </MotionDiv>
             )}
             </AnimatePresence>
 

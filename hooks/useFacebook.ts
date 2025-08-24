@@ -190,6 +190,19 @@ export const FacebookProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                     imageBase64 = content.imageUrl.split(',')[1];
                 }
                 break;
+            case 'blog':
+                message = `${content.title}\n\n${content.body.substring(0, 1000)}...\n\n(Full article available on our blog)\n\n${hashtagsText}`; // Truncate for facebook
+                if (content.imageUrl && content.imageUrl.startsWith('data:image/jpeg;base64,')) {
+                    imageBase64 = content.imageUrl.split(',')[1];
+                }
+                break;
+            case 'monetized_article_campaign':
+                const fbHashtagsText = content.fbPost.hashtags ? content.fbPost.hashtags.join(' ') : '';
+                message = `${content.fbPost.caption}\n\n${fbHashtagsText}`;
+                if (content.fbPost.imageUrl && content.fbPost.imageUrl.startsWith('data:image/jpeg;base64,')) {
+                    imageBase64 = content.fbPost.imageUrl.split(',')[1];
+                }
+                break;
         }
         
         if (message.trim()) {

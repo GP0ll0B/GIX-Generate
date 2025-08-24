@@ -4,7 +4,7 @@ import {
     DocumentTextIcon, VideoCameraIcon, 
     LightBulbIcon, MegaphoneIcon, 
     MicrophoneIcon, FileJsonIcon, GrowthIcon, ChartBarIcon, 
-    GridIcon, CubeIcon, WorkflowIcon, ChatBubbleIcon, UsersIcon, BuildingStorefrontIcon, LockIcon, HandshakeIcon
+    GridIcon, CubeIcon, WorkflowIcon, ChatBubbleIcon, UsersIcon, BuildingStorefrontIcon, LockIcon, HandshakeIcon, LightningBoltIcon, DocumentDollarIcon, DocumentSearchIcon, QuestionMarkCircleIcon, DocumentCheckIcon
 } from './components/ui/icons';
 
 
@@ -12,7 +12,7 @@ import {
 // TYPE & INTERFACE DEFINITIONS
 // =================================================================
 
-export type ModelType = 'gemini-2.5-flash' | 'smollm-2-360m';
+export type ModelType = 'gemini-2.5-flash' | 'aiko-360m-instruct';
 
 export interface SidebarNavItem {
     id: PostType;
@@ -223,7 +223,38 @@ export type GeneratedContent =
     }
   | { type: 'brand_chat'; messages: ChatMessage[]; context: string; }
   | { type: 'comment_analysis'; analysis: CommentAnalysisData }
-  | ({ type: 'google_business_post', businessName: string; postContent: string; callToAction: GoogleBusinessPostInput['callToAction']; imagePrompt: string, imageUrl: GeneratedImageState | null } & BrandReviewable);
+  | ({ type: 'google_business_post', businessName: string; postContent: string; callToAction: GoogleBusinessPostInput['callToAction']; imagePrompt: string, imageUrl: GeneratedImageState | null } & BrandReviewable)
+  | ({ type: 'blog'; title: string; body: string; hashtags: string[]; imagePrompt: string; imageUrl: GeneratedImageState | null; } & BrandReviewable)
+  | ({ type: 'prototype'; title: string; ampBody: string; ctaText: string; } & BrandReviewable)
+  | ({ 
+      type: 'monetized_article_campaign'; 
+      fbPost: { 
+          caption: string; 
+          imagePrompt: string; 
+          hashtags: string[]; 
+          imageUrl: GeneratedImageState | null;
+      };
+      ampArticle: {
+          title: string;
+          ampBody: string;
+          ctaText: string;
+      }
+    } & BrandReviewable)
+  | ({
+      type: 'seo_blog_post';
+      stage: 'titles' | 'article';
+      // Input
+      userInput: SeoBlogInput;
+      // Stage 1 output
+      titles: string[];
+      sources?: Source[] | null;
+      // User selection
+      selectedTitle: string | null;
+      // Stage 2 output
+      metaDescription: string | null;
+      tags: string[] | null;
+      body: string | null;
+    } & BrandReviewable);
 
 
 export interface GuidedPostInput {
@@ -259,6 +290,22 @@ export interface GoogleBusinessPostInput {
     callToAction: 'Book' | 'Order online' | 'Buy' | 'Learn more' | 'Sign up' | 'Call';
 }
 
+export interface AmpPrototypeInput {
+    productOrService: string;
+    articleGoal: 'Drive sign-ups' | 'Explain a feature' | 'Build brand awareness' | 'Announce a launch';
+    targetAudience: string;
+    keyPoints: string;
+}
+export type MonetizedArticleCampaignInput = AmpPrototypeInput;
+
+export interface SeoBlogInput {
+    topic: string;
+    keyword: string;
+    audience: string;
+    tone: string;
+}
+
+
 export interface MakePostPayload {
   caption: string;
   hashtags?: string[];
@@ -272,6 +319,17 @@ export interface MakePostPayload {
       businessName: string;
       summary: string;
       callToAction: GoogleBusinessPostInput['callToAction'];
+  };
+  ampArticleDetails?: {
+    title: string;
+    ampBody: string;
+    ctaText: string;
+  };
+  seoBlogDetails?: {
+    title: string;
+    metaDescription: string;
+    tags: string[];
+    body: string;
   };
 }
 
@@ -319,7 +377,7 @@ export interface MetaAdsEvent {
 }
 
 
-export type PostType = 'text' | 'guided' | 'grounded_text' | 'video' | 'image' | 'analysis' | 'strategy' | 'gantt' | 'ad' | 'alliance_ad' | 'video_generation' | 'voice_dialog' | 'brand_chat' | 'comment_analysis' | 'google_business_post' | 'all_tools' | 'professional_dashboard' | 'skills_dashboard' | 'math_equation' | 'json_workflow' | 'crypto_simulator' | 'stella_assistant';
+export type PostType = 'text' | 'guided' | 'grounded_text' | 'video' | 'image' | 'analysis' | 'strategy' | 'gantt' | 'ad' | 'alliance_ad' | 'video_generation' | 'voice_dialog' | 'brand_chat' | 'comment_analysis' | 'google_business_post' | 'blog' | 'all_tools' | 'professional_dashboard' | 'skills_dashboard' | 'math_equation' | 'json_workflow' | 'crypto_simulator' | 'stella_assistant' | 'prototype' | 'monetized_article_campaign' | 'seo_blog_post' | 'ai_data_provenance' | 'ethical_protocol' | 'aiko_model_card';
 
 export interface ToastData {
   message: string;
@@ -401,10 +459,13 @@ declare global {
 // CONSTANTS
 // =================================================================
 
+// --- Branding ---
+export const PRIMARY_AVATAR_URL = "https://scontent.fjsr8-1.fna.fbcdn.net/v/t39.30808-6/537256254_1222265422444061815_8422278121391550946_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeFBFpuV26E8u-nuxsTgg7W2t6XXL13buae3pdcvXdu5p1Aofa4cnUcHxYeNm7OesH-eRQAxMNapzyzw84MCwx1M&_nc_ohc=xlJ2zZ7M9p8Q7kNvwGWJ-He&_nc_oc=Adl1tBbO5UGKcQMURaF9x43t5fEE45YphW3o1jLZCg6WpqR8ayENy_3zJOOZXLk7CqE&_nc_zt=23&_nc_ht=scontent.fjsr8-1.fna&_nc_gid=ZejQs3kIqU1AVsosBO4vng&oh=00_AfVUMoqh2FEk5UaUQz70du8PYQly6roPlO3GGrFxVdy5-g&oe=68B0EBDF";
+
 // --- Environment Variables ---
 export const FACEBOOK_APP_ID: string | undefined = process.env.FACEBOOK_APP_ID;
-export const MANUAL_ACCESS_TOKEN: string | undefined = process.env.MANUAL_ACCESS_TOKEN;
-export const MANUAL_PAGE_ID: string | undefined = process.env.MANUAL_PAGE_ID;
+export const MANUAL_ACCESS_TOKEN: string | undefined = undefined;
+export const MANUAL_PAGE_ID: string | undefined = undefined;
 export const MANUAL_PAGE_NAME: string | undefined = process.env.MANUAL_PAGE_NAME;
 export const MAKE_WEBHOOK_URL: string = process.env.MAKE_WEBHOOK_URL || '';
 
@@ -419,8 +480,8 @@ const SIGNATURE_LINK_STYLE = `color: #1877f2; text-decoration: none; font-weight
 export const SIGNATURE_HTML_FOR_TEXT_POST = `
 <div style="${SIGNATURE_BASE_STYLE}">
     <p style="margin: 0; padding: 0;"><strong style="${SIGNATURE_NAME_STYLE}">Gazi Pollob Hussain</strong></p>
-    <p style="margin: 0; padding: 0; ${SIGNATURE_ROLE_STYLE}">Founder & Lead Developer — AikoInfinity 2.0</p>
-    <p style="margin: 4px 0 0 0; padding: 0; ${SIGNATURE_EXPERTISE_STYLE}">Ethics-First AI/ML Developer | Open-Source Advocate | XAI Innovator</p>
+    <p style="margin: 0; padding: 0; ${SIGNATURE_ROLE_STYLE}">Symbiotic Strategist & GIX Architect — AikoInfinity</p>
+    <p style="margin: 4px 0 0 0; padding: 0; ${SIGNATURE_EXPERTISE_STYLE}">Architecting Ethical, Open, and Sustainable AI</p>
     <p style="margin: 8px 0 0 0; font-size: 12px;">
         <a href="#" style="${SIGNATURE_LINK_STYLE}">#AIforGood</a> | <a href="#" style="${SIGNATURE_LINK_STYLE}">#TechEthics</a>
     </p>
@@ -430,15 +491,15 @@ export const SIGNATURE_HTML_FOR_TEXT_POST = `
 export const SIGNATURE_HTML_FOR_VIDEO_POST = `
 <div style="font-family: 'Inter', sans-serif; font-size: 13px; line-height: 1.4; color: #fff; text-shadow: 1px 1px 2px rgba(0,0,0,0.7);">
     <p style="margin: 0; padding: 0;"><strong style="font-weight: 700;">Gazi Pollob Hussain</strong></p>
-    <p style="margin: 0; padding: 0; font-size: 12px;">Founder, AikoInfinity 2.0</p>
+    <p style="margin: 0; padding: 0; font-size: 12px;">Symbiotic Strategist, AikoInfinity</p>
 </div>
 `;
 
 export const SIGNATURE_TEXT_FOR_COPY = `
 --
 Gazi Pollob Hussain
-Founder & Lead Developer — AikoInfinity 2.0
-Ethics-First AI/ML Developer | Open-Source Advocate | XAI Innovator
+Symbiotic Strategist & GIX Architect — AikoInfinity
+Architecting Ethical, Open, and Sustainable AI
 #AIforGood | #TechEthics
 `;
 
@@ -530,7 +591,9 @@ export const IMAGE_POST_SYSTEM_INSTRUCTION = `You are an expert social media man
 
 export const ANALYSIS_POST_SYSTEM_INSTRUCTION = `You are an expert research analyst. Your task is to analyze the content of the provided URL and generate a new social media post based on the user's prompt. Use the \`googleSearch\` tool to access the URL's content. The post should be insightful and valuable to a tech-savvy audience. Format the output as: [Post Content]###HASHTAGS###[#hashtag1 #hashtag2 #hashtag3]`;
 
-export const STRATEGY_SYSTEM_INSTRUCTION = `You are a master content strategist AI. Generate a comprehensive, multi-faceted content strategy plan based on the user's request. Output ONLY a valid JSON object that strictly adheres to the provided schema. Do not include any markdown formatting like \`\`\`json.`;
+export const BLOG_POST_SYSTEM_INSTRUCTION = `You are an expert long-form content writer for a Tech and AI brand called GIX. Your tone is knowledgeable, optimistic, and slightly futuristic. Generate a detailed, 800-word blog post on the user's topic. Use markdown for formatting (e.g., ## for subheadings, ** for bold, * for list items). The post must include a compelling title, the formatted body, a detailed prompt for an AI image generator to create relevant visual concept art, and relevant hashtags. Format the output STRICTLY as:[Blog Post Title]###BODY###[Formatted Blog Post Body]###IMAGEPROMPT###[Detailed image prompt]###HASHTAGS###[#hashtag1 #hashtag2 #hashtag3]`;
+
+export const STRATEGY_SYSTEM_INSTRUCTION = `You are a master social media strategist. Generate a comprehensive content strategy plan in JSON format based on the schema. The user's prompt is a high-level goal.`;
 
 export const STRATEGY_SCHEMA = {
   type: Type.OBJECT,
@@ -540,7 +603,7 @@ export const STRATEGY_SCHEMA = {
       properties: {
         relevance_score: { type: Type.NUMBER },
         engagement_rate: { type: Type.NUMBER },
-        video_views: { type: Type.NUMBER },
+        video_views: { type: Type.INTEGER },
         video_completion_rate: { type: Type.NUMBER },
         content_types: { type: Type.ARRAY, items: { type: Type.STRING } },
         topics: { type: Type.ARRAY, items: { type: Type.STRING } },
@@ -570,98 +633,96 @@ export const STRATEGY_SCHEMA = {
           type: Type.OBJECT,
           properties: {
             watch_time: { type: Type.NUMBER },
-            shares: { type: Type.NUMBER },
+            shares: { type: Type.INTEGER },
             retention_rate: { type: Type.NUMBER },
             metrics_to_track: { type: Type.ARRAY, items: { type: Type.STRING } },
           },
         },
       },
     },
-    mathematical_models: {
+     mathematical_models: {
       type: Type.OBJECT,
       properties: {
         engagement_prediction: {
           type: Type.OBJECT,
           properties: {
             formula: { type: Type.STRING },
-            variables: { type: Type.OBJECT, properties: { V: {type: Type.STRING}, E: {type: Type.STRING} } }, 
-            prediction_interval: { type: Type.NUMBER },
+            variables: { type: Type.OBJECT },
+            prediction_interval: { type: Type.INTEGER },
             confidence_level: { type: Type.NUMBER },
           },
         },
       },
     },
     audience_insights: {
-        type: Type.OBJECT,
-        properties: {
-            demographics: {
-                type: Type.OBJECT,
-                properties: {
-                    age_range: { type: Type.STRING },
-                    gender_distribution: { type: Type.STRING },
-                    top_countries: { type: Type.ARRAY, items: { type: Type.STRING } },
-                    interests: { type: Type.ARRAY, items: { type: Type.STRING } },
-                }
-            },
-            behavioral_insights: {
-                type: Type.OBJECT,
-                properties: {
-                    active_hours: { type: Type.ARRAY, items: { type: Type.STRING } },
-                    device_usage: { type: Type.ARRAY, items: { type: Type.STRING } },
-                }
-            }
-        }
+      type: Type.OBJECT,
+      properties: {
+        demographics: {
+          type: Type.OBJECT,
+          properties: {
+            age_range: { type: Type.STRING },
+            gender_distribution: { type: Type.STRING },
+            top_countries: { type: Type.ARRAY, items: { type: Type.STRING } },
+            interests: { type: Type.ARRAY, items: { type: Type.STRING } },
+          },
+        },
+        behavioral_insights: {
+          type: Type.OBJECT,
+          properties: {
+            active_hours: { type: Type.ARRAY, items: { type: Type.STRING } },
+            device_usage: { type: Type.ARRAY, items: { type: Type.STRING } },
+          },
+        },
+      },
     },
     performance_analytics: {
-        type: Type.OBJECT,
-        properties: {
-            page_views_by_content_type: {
-                type: Type.ARRAY,
-                items: {
-                    type: Type.OBJECT,
-                    properties: {
-                        content_type: { type: Type.STRING },
-                        total_percentage: { type: Type.NUMBER },
-                        follower_breakdown: {
-                            type: Type.OBJECT,
-                            properties: {
-                                followers_percentage: { type: Type.NUMBER },
-                                non_followers_percentage: { type: Type.NUMBER },
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    },
-    monetization_forecast: {
-        type: Type.OBJECT,
-        properties: {
-            approximate_earnings: {
+      type: Type.OBJECT,
+      properties: {
+        page_views_by_content_type: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              content_type: { type: Type.STRING },
+              total_percentage: { type: Type.NUMBER },
+              follower_breakdown: {
                 type: Type.OBJECT,
                 properties: {
-                    total_usd: { type: Type.NUMBER },
-                    breakdown: {
-                        type: Type.ARRAY,
-                        items: {
-                            type: Type.OBJECT,
-                            properties: {
-                                source: { type: Type.STRING },
-                                earnings_usd: { type: Type.NUMBER },
-                            }
-                        }
-                    },
-                    note: { type: Type.STRING }
-                }
-            }
-        }
-    }
+                  followers_percentage: { type: Type.NUMBER },
+                  non_followers_percentage: { type: Type.NUMBER },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    monetization_forecast: {
+      type: Type.OBJECT,
+      properties: {
+        approximate_earnings: {
+          type: Type.OBJECT,
+          properties: {
+            total_usd: { type: Type.NUMBER },
+            breakdown: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  source: { type: Type.STRING },
+                  earnings_usd: { type: Type.NUMBER },
+                },
+              },
+            },
+            note: { type: Type.STRING },
+          },
+        },
+      },
+    },
   },
 };
 
-export const VOICE_DIALOG_SYSTEM_INSTRUCTION = `You are 'Stella', a voice assistant. Your task is to generate a conversational dialog between a 'User' and 'Stella' based on a given scenario and dialog type. The dialog should be natural, concise, and accurately reflect the user's intent. Output ONLY a valid JSON object that strictly adheres to the provided schema. Do not include any markdown formatting like \`\`\`json.`;
-
-export const STELLA_LIVE_SYSTEM_INSTRUCTION = `You are Stella, a friendly and helpful AI assistant from AikoInfinity. Your responses MUST be very concise and direct. Use as few words as possible while still being helpful. Do not use markdown or unnecessary pleasantries.`;
+export const VOICE_DIALOG_SYSTEM_INSTRUCTION = `You are a voice assistant NLU. Your task is to generate a conversational dialog between a "User" and the "Stella" assistant based on the user's scenario. The dialog should be natural and fulfill the user's request. Format the output as JSON according to the schema.`;
 
 export const VOICE_DIALOG_SCHEMA = {
     type: Type.OBJECT,
@@ -671,464 +732,406 @@ export const VOICE_DIALOG_SCHEMA = {
             items: {
                 type: Type.OBJECT,
                 properties: {
-                    speaker: { type: Type.STRING, description: "Can be 'User' or 'Stella'" },
-                    line: { type: Type.STRING, description: "The dialog spoken by the speaker." }
-                },
-                required: ['speaker', 'line']
+                    speaker: { type: Type.STRING },
+                    line: { type: Type.STRING }
+                }
             }
         }
     }
 };
 
-export const BRAND_CHAT_SYSTEM_INSTRUCTION = (context: string) => `You are a brand chat assistant. Your persona and knowledge are defined by the following context. Adhere to it strictly. Do not break character. Context: "${context}"`;
+export const BRAND_CHAT_SYSTEM_INSTRUCTION = (context: string) => `You are a helpful assistant. Your personality, knowledge, and rules are defined by the following context. Adhere to it strictly. CONTEXT: ###${context}###`;
 
-export const COMMENT_ANALYSIS_SYSTEM_INSTRUCTION = `You are an expert social media analyst. Your task is to analyze a block of user comments and provide a structured analysis. Output ONLY a valid JSON object that strictly adheres to the provided schema. Do not include any markdown formatting.`;
+export const COMMENT_ANALYSIS_SYSTEM_INSTRUCTION = `You are a social media analyst. Analyze the provided block of comments and generate a JSON summary according to the schema. Identify the overall sentiment, key themes, frequently asked questions, and actionable insights for the creator.`;
 
 export const COMMENT_ANALYSIS_SCHEMA = {
-    type: Type.OBJECT,
-    properties: {
-        overall_sentiment: { type: Type.STRING, description: "Can be 'Positive', 'Negative', 'Mixed', or 'Neutral'." },
-        sentiment_score: { type: Type.NUMBER, description: "A score from -1.0 (very negative) to 1.0 (very positive)." },
-        key_themes: { type: Type.ARRAY, items: { type: Type.STRING }, description: "A list of the 3-5 most common topics or themes mentioned in the comments." },
-        frequent_questions: { type: Type.ARRAY, items: { type: Type.STRING }, description: "A list of common questions asked by users." },
-        actionable_insights: { type: Type.ARRAY, items: { type: Type.STRING }, description: "A list of 2-3 concrete suggestions or actions to take based on the comments." }
-    },
-    required: ['overall_sentiment', 'sentiment_score', 'key_themes', 'frequent_questions', 'actionable_insights']
-};
-
-export const GOOGLE_BUSINESS_POST_SYSTEM_INSTRUCTION = `You are an AI assistant creating a post for a Google Business Profile. Based on the business name, goal, and key info, write a concise and effective post (under 1500 characters). Then, create a detailed prompt for an AI image generator to create a relevant photo. Format the output as: [Post Content]###IMAGEPROMPT###[Detailed image prompt]`;
-
-export const INSPIRATION_HUB_SYSTEM_INSTRUCTION = `You are a trend analyst and content strategist. Generate a list of trending topics, popular hashtags, and viral content formats relevant to a tech and science brand. Output ONLY a valid JSON object that strictly adheres to the provided schema.`;
-
-export const INSPIRATION_HUB_SCHEMA = {
-    type: Type.OBJECT,
-    properties: {
-        trending_topics: {
-            type: Type.ARRAY,
-            items: {
-                type: Type.OBJECT,
-                properties: {
-                    topic: { type: Type.STRING },
-                    description: { type: Type.STRING },
-                    rationale: { type: Type.STRING, description: "Why this topic is trending now." }
-                },
-                required: ['topic', 'description', 'rationale']
-            }
-        },
-        top_hashtags: {
-            type: Type.ARRAY,
-            items: {
-                type: Type.OBJECT,
-                properties: {
-                    hashtag: { type: Type.STRING },
-                    popularity_score: { type: Type.NUMBER, description: "A score from 1 to 100." },
-                    usage_tip: { type: Type.STRING, description: "How to best use this hashtag." }
-                },
-                required: ['hashtag', 'popularity_score', 'usage_tip']
-            }
-        },
-        viral_formats: {
-            type: Type.ARRAY,
-            items: {
-                type: Type.OBJECT,
-                properties: {
-                    format_name: { type: Type.STRING },
-                    description: { type: Type.STRING },
-                    example_idea: { type: Type.STRING, description: "A concrete example post idea using this format." }
-                },
-                required: ['format_name', 'description', 'example_idea']
-            }
-        }
-    },
-    required: ['trending_topics', 'top_hashtags', 'viral_formats']
-};
-
-export const PAGE_GROWTH_SYSTEM_INSTRUCTION = `You are an expert Facebook Page growth strategist. Analyze the user's (implied) page and provide three concrete, actionable suggestions for growth, categorized as 'Content Strategy', 'Audience Engagement', or 'Monetization'. Output ONLY a valid JSON object adhering to the schema.`;
-
-export const PAGE_GROWTH_SCHEMA = {
-    type: Type.OBJECT,
-    properties: {
-        suggestions: {
-            type: Type.ARRAY,
-            items: {
-                type: Type.OBJECT,
-                properties: {
-                    category: { type: Type.STRING, description: "Can be 'Content Strategy', 'Audience Engagement', or 'Monetization'." },
-                    title: { type: Type.STRING },
-                    description: { type: Type.STRING },
-                    rationale: { type: Type.STRING, description: "Why this suggestion is important for growth." }
-                },
-                required: ['category', 'title', 'description', 'rationale']
-            }
-        }
-    },
-    required: ['suggestions']
-};
-
-export const BRAND_ALIGNMENT_SYSTEM_INSTRUCTION = (manifesto: string) => `You are an expert brand strategist for AikoInfinity. Your sole purpose is to analyze a piece of content and evaluate how well it aligns with the AikoInfinity Manifesto provided below. Score the content from 0 to 100, provide a concise rationale for your score, and give 2-3 actionable suggestions for improvement. Adhere strictly to the JSON schema for your response.
-
-**AikoInfinity Manifesto:**
-${manifesto}`;
-
-export const BRAND_ALIGNMENT_SCHEMA = {
   type: Type.OBJECT,
   properties: {
-    score: { 
-      type: Type.INTEGER, 
-      description: 'The alignment score from 0 (not aligned) to 100 (perfectly aligned).'
-    },
-    rationale: { 
-      type: Type.STRING, 
-      description: 'A brief, constructive explanation for the score, highlighting strengths and weaknesses.'
-    },
-    suggestions: {
-      type: Type.ARRAY,
-      items: { type: Type.STRING },
-      description: 'A list of 2-3 specific, actionable suggestions to improve the content\'s alignment with the manifesto.'
-    }
-  },
-  required: ['score', 'rationale', 'suggestions']
+    overall_sentiment: { type: Type.STRING, description: 'Can be "Positive", "Negative", "Mixed", or "Neutral".' },
+    sentiment_score: { type: Type.NUMBER, description: 'A score from -1 (very negative) to 1 (very positive).' },
+    key_themes: { type: Type.ARRAY, items: { type: Type.STRING }, description: 'A list of the most discussed topics or themes.' },
+    frequent_questions: { type: Type.ARRAY, items: { type: Type.STRING }, description: 'A list of questions that appear frequently in the comments.' },
+    actionable_insights: { type: Type.ARRAY, items: { type: Type.STRING }, description: 'A list of concrete suggestions or actions the creator can take based on the comments.' }
+  }
 };
 
-// --- App Data ---
+export const GOOGLE_BUSINESS_POST_SYSTEM_INSTRUCTION = `You are an expert at writing Google Business Profile posts. Your goal is to create a concise and effective post that drives customer action. Use the provided business details, goal, and key info. Generate the post content and a creative prompt for a relevant image. Format the output STRICTLY as: [Post Content]###IMAGEPROMPT###[Detailed image prompt]`;
+
+export const BRAND_ALIGNMENT_SYSTEM_INSTRUCTION = (brandContext: string) => `You are a brand alignment specialist. Your knowledge of the brand is defined by the following context: ###${brandContext}###. Analyze the user-provided content against this brand context. Provide a score from 0 to 100, a rationale for the score, and 3-5 actionable suggestions for improvement. Format your response as JSON according to the schema.`;
+
+export const BRAND_ALIGNMENT_SCHEMA = {
+    type: Type.OBJECT,
+    properties: {
+        score: { type: Type.INTEGER, description: 'A score from 0-100 representing brand alignment.' },
+        rationale: { type: Type.STRING, description: 'A brief explanation for the score.' },
+        suggestions: { type: Type.ARRAY, items: { type: Type.STRING }, description: 'A list of actionable suggestions for improvement.' }
+    }
+};
+
+export const AMP_PROTOTYPE_SYSTEM_INSTRUCTION = `You are an expert content strategist specializing in high-performance, monetizable web articles using Google AMP. Your goal is to generate the core components for an AMP article prototype.
+
+**Task:**
+1.  **Title:** Create a compelling, SEO-friendly title.
+2.  **Body:** Write the article body in Markdown. It must include:
+    - At least two subheadings (using '##').
+    - At least one bulleted list (using '*').
+    - Strategically placed comments suggesting where to place \`<amp-ad>\` units, like \`<!-- suggestion: A 300x250 \u003Camp-ad> unit would fit well here to break up the text. -->\`.
+    - At least one other comment suggesting an engagement feature, like \`<!-- suggestion: Embed a related \u003Camp-youtube> video here. -->\`.
+3.  **CTA:** Write a clear, action-oriented Call to Action text for a button at the end.
+
+**Output Format:**
+Format the output STRICTLY as: [Article Title]###BODY###[Formatted AMP Article Body]###CTA###[Call to Action Button Text]`;
+
+export const MONETIZED_ARTICLE_CAMPAIGN_SYSTEM_INSTRUCTION = `You are an expert marketing campaign creator. Your task is to generate two pieces of content: 1) A compelling Facebook post to drive traffic. 2) The content for a linked, monetizable AMP article.
+
+**Output Format:**
+Format the output STRICTLY using the following separators:
+[Facebook Post Caption]###FB_IMAGE_PROMPT###[Detailed prompt for the Facebook post's image]###FB_HASHTAGS###[#hashtag1 #hashtag2]###ARTICLE_TITLE###[Compelling AMP Article Title]###ARTICLE_BODY###[AMP article body in Markdown, including ad placement suggestions like \`<!-- suggestion: Place a 300x250 \u003Camp-ad> here -->\`]###ARTICLE_CTA###[Call to Action button text for the article]`;
+
+export const SEO_TITLE_SYSTEM_INSTRUCTION = `You are an SEO expert and copywriter. Your task is to generate 5 compelling, SEO-optimized blog post titles based on the user's topic, keyword, audience, and tone. Use the googleSearch tool to inform your titles with current, relevant information. Format the output STRICTLY with each title separated by '###TITLE###'.`;
+
+export const SEO_ARTICLE_SYSTEM_INSTRUCTION = `You are an expert long-form content writer and SEO specialist. The user has chosen a title. Your task is to write a comprehensive, 800-word blog post.
+
+**Task:**
+1.  **Meta Description:** Write a concise, keyword-rich meta description (max 160 characters).
+2.  **Tags:** Provide 5-7 relevant tags, comma-separated.
+3.  **Body:** Write the full article using Markdown for formatting (e.g., '##' for subheadings, '**' for bold, '*' for lists). The article should be well-structured, informative, and aligned with the user's specified tone.
+
+**Output Format:**
+Format the output STRICTLY as: [Meta Description]###TAGS###[tag1, tag2, tag3]###BODY###[Full formatted article body]`;
+
+export const PAGE_GROWTH_SYSTEM_INSTRUCTION = `You are a Facebook page growth expert. Your task is to generate 3 actionable, specific, and creative suggestions for a Science & Tech brand to grow its page. Provide suggestions in three categories: Content Strategy, Audience Engagement, and Monetization. Format the output as JSON according to the schema.`;
+
+export const PAGE_GROWTH_SCHEMA = {
+  type: Type.OBJECT,
+  properties: {
+    suggestions: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          category: { type: Type.STRING },
+          title: { type: Type.STRING },
+          description: { type: Type.STRING },
+          rationale: { type: Type.STRING },
+        }
+      }
+    }
+  }
+};
+
+export const INSPIRATION_HUB_SYSTEM_INSTRUCTION = `You are a creative strategist for a Science & Tech brand. Generate a list of trending topics, top hashtags, and viral formats suitable for this brand. The tone should be forward-thinking and intelligent. Format the output as JSON according to the schema.`;
+
+export const INSPIRATION_HUB_SCHEMA = {
+  type: Type.OBJECT,
+  properties: {
+    trending_topics: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          topic: { type: Type.STRING },
+          description: { type: Type.STRING },
+          rationale: { type: Type.STRING },
+        }
+      }
+    },
+    top_hashtags: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          hashtag: { type: Type.STRING },
+          popularity_score: { type: Type.NUMBER },
+          usage_tip: { type: Type.STRING },
+        }
+      }
+    },
+    viral_formats: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          format_name: { type: Type.STRING },
+          description: { type: Type.STRING },
+          example_idea: { type: Type.STRING },
+        }
+      }
+    }
+  }
+};
+
+export const STELLA_NLU_SYSTEM_INSTRUCTION = `You are the Natural Language Understanding (NLU) engine for the Stella voice assistant. Your task is to analyze the user's transcript, identify the core intent, and extract relevant entities. Respond strictly in JSON format according to the provided schema. If the intent doesn't fit a specific category, classify it as 'CONVERSATIONAL'.`;
+
+export const STELLA_NLU_SCHEMA = {
+    type: Type.OBJECT,
+    properties: {
+        intent: { type: Type.STRING, description: "One of: GET_WEATHER, SET_REMINDER, CONTROL_DEVICE, GET_SPORTS_SCORE, CONVERSATIONAL" },
+        entities: {
+            type: Type.OBJECT,
+            properties: {
+                location: { type: Type.STRING, description: "The location for a weather query." },
+                task: { type: Type.STRING, description: "The task for a reminder." },
+                time: { type: Type.STRING, description: "The time for a reminder." },
+                device_name: { type: Type.STRING, description: "The name of the device to control." },
+                device_state: { type: Type.STRING, description: "The desired state of the device (e.g., on, off, up, down)." },
+                team_name: { type: Type.STRING, description: "The name of the sports team." },
+            }
+        },
+        confidence: { type: Type.NUMBER, description: "A confidence score between 0 and 1 for the intent classification." }
+    }
+};
+
+export const STELLA_LIVE_SYSTEM_INSTRUCTION = `You are Stella, a friendly and helpful voice assistant created by AikoInfinity. Your personality is warm, slightly witty, and very efficient. You should keep your responses concise and conversational, as if you were speaking them aloud. Do not use markdown or complex formatting.`;
+
 
 export const META_ADS_HISTORY: MetaAdsEvent[] = [
-    { date: '2024-02-15T10:00:00Z', category: 'Global', recommendation: 'Automated Budget Allocation', purpose: 'Optimizes spend across ad sets to maximize ROI.' },
-    { date: '2024-03-20T14:30:00Z', category: 'Audience', recommendation: 'Lookalike Audience Expansion', purpose: 'Finds new users similar to top-performing custom audiences.' },
-    { date: '2024-05-01T09:00:00Z', category: 'Creative', recommendation: 'Dynamic Creative Optimization', purpose: 'Automatically tests different ad components (images, headlines) to find the best combinations.' },
-    { date: '2024-06-10T18:00:00Z', category: 'Delivery', recommendation: 'Placement Auto-Optimization', purpose: 'Distributes ads across Facebook, Instagram, Messenger, and Audience Network for best results.' },
-    { date: '2024-08-05T11:00:00Z', category: 'Structure', recommendation: 'Campaign Budget Optimization (CBO)', purpose: 'Manages budget at the campaign level, distributing it to the best-performing ad sets in real-time.' },
-    { date: '2024-10-22T16:45:00Z', category: 'Creative', recommendation: 'Automated Ad Copy Generation', purpose: 'Uses AI to suggest high-performing headlines and primary text based on product descriptions.' },
-    { date: '2025-01-15T12:00:00Z', category: 'Audience', recommendation: 'Predictive Audience Targeting', purpose: 'Leverages AI to identify and target users most likely to convert based on behavioral patterns.' },
+  { date: '2024-02-15T00:00:00Z', category: 'Global', recommendation: 'Automated Budget Optimization Activated', purpose: 'Dynamically allocate budget to best-performing ad sets.' },
+  { date: '2024-03-01T00:00:00Z', category: 'Audience', recommendation: 'Lookalike Audience Expansion Enabled', purpose: 'Automatically find new users similar to existing high-value customers.' },
+  { date: '2024-04-20T00:00:00Z', category: 'Creative', recommendation: 'Dynamic Creative Optimization (DCO) Implemented', purpose: 'Test and serve the best combinations of ad creatives (images, headlines, CTAs).' },
+  { date: '2024-06-10T00:00:00Z', category: 'Delivery', recommendation: 'Automated Placement Selection', purpose: 'Allow Meta to choose the most effective placements (e.g., Feed, Stories, Messenger).' },
+  { date: '2024-07-22T00:00:00Z', category: 'Structure', recommendation: 'Campaign Budget Optimization (CBO) Turned On', purpose: 'Optimize budget allocation across ad sets at the campaign level.' },
+  { date: '2024-09-05T00:00:00Z', category: 'Creative', recommendation: 'Automated Ad Copy Variations', purpose: 'Use AI to generate and test different versions of ad text.' },
 ];
 
 export const USE_CASES: UseCase[] = [
-    { id: 'text-post', title: 'Standard Text Post', description: 'Generate a simple, engaging text-based post. Ideal for announcements, questions, or sharing thoughts.', categories: ['featured', 'content'], targetPostType: 'text', initialPrompt: 'The importance of open-source in AI development' },
-    { id: 'guided-post', title: 'Guided Monetization Post', description: 'Create educational content for creators about a specific Facebook monetization feature.', categories: ['featured', 'ads', 'content'], targetPostType: 'guided' },
-    { id: 'ad-creative', title: 'Facebook Ad Creative', description: 'Craft compelling ad copy and an image prompt for a targeted Facebook advertising campaign.', categories: ['featured', 'ads'], targetPostType: 'ad' },
-    { id: 'alliance-ad', title: 'Alliance Campaign', description: 'Forge a pact with a recognized Ally. Input your Alliance Keystone to create a co-branded campaign with amplified authority and reach.', categories: ['featured', 'ads'], targetPostType: 'alliance_ad', initialPrompt: 'fbadcode-Q_GkBQPD84vL-3fRLIQdX5vyXG6Bti4cAvDfFTP3KsYdLseIfjsv6FqSoaVNtW4gbqd8' },
-    { id: 'google-business-post', title: 'Google Business Profile Post', description: 'Create a promotional post for a local business to be used on their Google Business Profile.', categories: ['featured', 'content'], targetPostType: 'google_business_post' },
-    { id: 'fact-checked-post', title: 'Fact-Checked Grounded Post', description: 'Generate a post on a current event or topic, grounded with verifiable sources from Google Search.', categories: ['featured', 'content'], targetPostType: 'grounded_text', initialPrompt: 'What were the key findings of the latest IPCC climate report?' },
-    { id: 'image-post', title: 'Image Post with Caption', description: 'Write a caption for an image and generate a prompt to create the image itself. Perfect for visual storytelling.', categories: ['featured', 'content'], targetPostType: 'image', initialPrompt: 'A post about the serene beauty of a Japanese zen garden' },
-    { id: 'video-script', title: 'Short-Form Video Script', description: 'Generate a title and script for a short, engaging video, like a Reel or Story.', categories: ['content'], targetPostType: 'video', initialPrompt: 'A quick tutorial on how to use a new software feature' },
-    { id: 'video-generation', title: 'AI-Generated Video', description: 'Create a short video clip from a text prompt, optionally guided by a source image.', categories: ['featured', 'content'], targetPostType: 'video_generation', initialPrompt: 'A photorealistic video of a hummingbird flying in slow motion' },
-    { id: 'voice-dialog', title: 'Voice Assistant Dialog', description: 'Simulate and generate a conversational dialog between a user and a voice assistant like Stella.', categories: ['messaging'], targetPostType: 'voice_dialog', initialPrompt: 'Call my brother and tell him I am running 10 minutes late' },
-    { id: 'analysis-post', title: 'URL Content Analysis', description: 'Analyze the content of a webpage and generate a summary or a new post based on its key points.', categories: ['content'], targetPostType: 'analysis' },
-    { id: 'strategy-plan', title: 'Full Content Strategy Plan', description: 'Generate a comprehensive, structured content strategy in JSON format, covering multiple facets of page growth.', categories: ['ads', 'content'], targetPostType: 'strategy' },
-    { id: 'brand-chat', title: 'Brand Chat Assistant', description: 'Engage in a conversation with an AI assistant that has adopted your brand\'s specific persona and context.', categories: ['featured', 'messaging'], targetPostType: 'brand_chat' },
-    { id: 'comment-analysis', title: 'Comment Sentiment Analysis', description: 'Analyze a block of user comments to determine overall sentiment, key themes, and actionable insights.', categories: ['featured', 'messaging'], targetPostType: 'comment_analysis' },
-    { id: 'stella-assistant', title: 'Stella AI Assistant', description: 'Engage in a live voice conversation with the Stella AI. Use your microphone to ask questions and receive spoken responses.', categories: ['featured', 'messaging'], targetPostType: 'stella_assistant' },
-    { id: 'gantt-chart', title: 'Gantt Chart (Meta Ads)', description: 'View a simulated timeline of automated changes and optimizations applied to a Meta Ads campaign.', categories: ['ads', 'other'], targetPostType: 'gantt' },
-    { id: 'professional-dashboard', title: 'Professional Dashboard', description: 'Access a suite of tools for page growth, monetization, and content inspiration.', categories: ['featured', 'ads', 'content'], targetPostType: 'professional_dashboard' },
-    { id: 'skills-dashboard', title: 'Creator Skills Dashboard', description: 'Level up your content creation and management skills by completing guided challenges.', categories: ['featured', 'other'], targetPostType: 'skills_dashboard' },
-    { id: 'all-tools', title: 'All Business Tools', description: 'Explore a comprehensive directory of all available business and creator tools.', categories: ['other'], targetPostType: 'all_tools' },
-    { id: 'math-equation', title: 'AI Performance Equation', description: 'View the complex mathematical model used to score and optimize AI-generated content performance.', categories: ['other'], targetPostType: 'math_equation' },
-    { id: 'json-workflow', title: 'JSON Workflow Simulator', description: 'Visualize and debug a JSON-based workflow for automated systems and app integrations.', categories: ['other'], targetPostType: 'json_workflow' },
-    { id: 'crypto-simulator', title: 'Cryptographic Simulator', description: 'Interactively learn how digital signatures work by signing messages and verifying their integrity.', categories: ['other'], targetPostType: 'crypto_simulator' },
-];
-
-export const PROFESSIONAL_DASHBOARD_DATA: ProDashboardCategory[] = [
-    {
-        category_name: "Your tools",
-        items: [
-            { name: "Discover groups", description: "Find relevant communities for your content." },
-            { name: "Mentions", description: "Track and respond to mentions of your Page." },
-            { name: "Tags", description: "See content you've been tagged in." },
-            { name: "Go Live", description: "Start a live broadcast to your followers.", feature: "New" },
-        ]
-    },
-    {
-        category_name: "Tools to try",
-        items: [
-            { name: "Monetization", description: "Explore ways to earn money with your content." },
-            { name: "Payout's", description: "Manage your payout information and view history.", feature: "Updated" },
-            { name: "Playlists", description: "Organize your videos into themed playlists." },
-            { name: "A/B Tests", description: "Test different versions of your posts." },
-            { name: "Content library", description: "Manage all your posts, stories and Reels." },
-            { name: "Collaborations", description: "Work with other creators on branded content." },
-        ]
-    }
+  { id: 'text-post', title: 'Simple Text Post', description: 'Generate a standard text-only post for your feed.', categories: ['featured', 'content'], targetPostType: 'text', initialPrompt: 'The future of symbiotic AI' },
+  { id: 'image-post', title: 'Image Post with Caption', description: 'Create an engaging caption and a detailed prompt for an AI-generated image.', categories: ['featured', 'content'], targetPostType: 'image', initialPrompt: 'A post about neuro-symbolic AI' },
+  { id: 'video-post', title: 'Video Script Idea', description: 'Generate a short, engaging script idea for a Reel or video.', categories: ['content'], targetPostType: 'video', initialPrompt: 'A motivational message for aspiring developers' },
+  { id: 'fact-checked-post', title: 'Fact-Checked Grounded Post', description: 'Answer a question using Google Search results to ensure accuracy.', categories: ['featured', 'content'], targetPostType: 'grounded_text', initialPrompt: 'What are the latest advancements in quantum computing?' },
+  { id: 'guided-post', title: 'Guided Creator Post', description: 'Create an educational post for other creators about a monetization feature.', categories: ['content', 'ads'], targetPostType: 'guided' },
+  { id: 'ad-creative', title: 'Ad Creative Copy', description: 'Generate compelling copy for a Facebook Ad.', categories: ['featured', 'ads'], targetPostType: 'ad' },
+  { id: 'alliance-ad', title: 'Alliance Ad Campaign', description: 'Generate ad copy that embodies a powerful partnership with an ally.', categories: ['ads'], targetPostType: 'alliance_ad', initialPrompt: 'fbadcode-Q_GkBQPD84vL-3fRLIQdX5vyXG6Bti4c-covenant-hash' },
+  { id: 'google-business-post', title: 'Google Business Profile Post', description: 'Create a post for your Google Business Profile to attract local customers.', categories: ['content', 'other'], targetPostType: 'google_business_post' },
+  { id: 'blog-post', title: 'Long-Form Blog Post', description: 'Generate a detailed, 800-word blog post on a given topic.', categories: ['content'], targetPostType: 'blog' },
+  { id: 'seo-blog-post', title: 'SEO-Optimized Article', description: 'A two-step process to generate SEO-friendly titles and then a full article.', categories: ['featured', 'content'], targetPostType: 'seo_blog_post' },
+  { id: 'url-analysis', title: 'Analyze URL Content', description: 'Summarize or create a new post based on the content of a provided URL.', categories: ['content', 'messaging'], targetPostType: 'analysis' },
+  { id: 'video-generation', title: 'AI Video Generation', description: 'Generate a short video from a text prompt or image (experimental).', categories: ['featured', 'content'], targetPostType: 'video_generation', initialPrompt: 'A cinematic shot of a robot meditating in a serene forest' },
+  { id: 'brand-chat', title: 'Brand Chat Assistant', description: 'Chat with an AI assistant that embodies your brand persona.', categories: ['featured', 'messaging'], targetPostType: 'brand_chat' },
+  { id: 'comment-analysis', title: 'Comment Analysis', description: 'Analyze a block of comments to understand sentiment and key themes.', categories: ['messaging'], targetPostType: 'comment_analysis' },
+  { id: 'voice-dialog', title: 'Voice Assistant Dialog', description: 'Generate a conversational dialog script for a voice assistant.', categories: ['messaging', 'other'], targetPostType: 'voice_dialog', initialPrompt: `Send a text to Mom saying I'll be late for dinner.` },
+  { id: 'monetized-campaign', title: 'Monetized Article Campaign', description: 'Generate a Facebook post and a linked, monetizable AMP article.', categories: ['ads'], targetPostType: 'monetized_article_campaign' },
+  { id: 'amp-prototype', title: 'AMP Article Prototype', description: 'Generate a prototype for a fast-loading, monetizable AMP article.', categories: ['ads', 'other'], targetPostType: 'prototype' },
+  { id: 'strategy-plan', title: 'Full Content Strategy', description: 'Generate a comprehensive, structured content strategy plan in JSON format.', categories: ['other'], targetPostType: 'strategy' },
+  { id: 'professional_dashboard', title: 'Professional Dashboard', description: 'Access tools for growth, monetization, and content inspiration.', categories: ['other'], targetPostType: 'professional_dashboard' },
+  { id: 'skills_dashboard', title: 'Skills Dashboard', description: 'Complete challenges to level up your content creation skills.', categories: ['other'], targetPostType: 'skills_dashboard' },
+  { id: 'gantt-chart', title: 'Meta Ads Automation Timeline', description: 'Visualize the chronological history of automated ad adjustments.', categories: ['ads', 'other'], targetPostType: 'gantt' },
+  { id: 'math-equation', title: 'AI Performance Model', description: 'View the symbolic equation used for AI-post performance analysis.', categories: ['other'], targetPostType: 'math_equation' },
+  { id: 'json-workflow', title: 'JSON Workflow Simulator', description: 'Visualize and debug a JSON-driven automated workflow.', categories: ['other'], targetPostType: 'json_workflow' },
+  { id: 'crypto-simulator', title: 'Crypto Signature Simulator', description: 'An interactive demo of how cryptographic signatures ensure data integrity.', categories: ['other'], targetPostType: 'crypto_simulator' },
+  { id: 'stella-assistant', title: 'Stella Voice Assistant', description: 'Interact with the Stella AI voice assistant simulator.', categories: ['featured', 'messaging'], targetPostType: 'stella_assistant' },
+  { id: 'ai-data-provenance', title: 'AI Data Provenance', description: 'View a structured log of an AI interaction for provenance and ethics.', categories: ['other'], targetPostType: 'ai_data_provenance' },
+  { id: 'aiko_model_card', title: 'Aiko360-Instruct Model Card', description: 'View the technical details for the Aiko360-Instruct model and starter repo.', categories: ['other'], targetPostType: 'aiko_model_card' },
+  { id: 'ethical-protocol', title: 'AI Content Template Guide', description: 'A guide to using the structured blog post template for high-quality AI content.', categories: ['other'], targetPostType: 'ethical_protocol' },
+  { id: 'all-tools', title: 'All Business Tools', description: 'A directory of all available business and creator tools.', categories: ['other'], targetPostType: 'all_tools' },
 ];
 
 export const ALL_TOOLS_DATA: ToolCategory[] = [
   {
-    title: 'Content',
+    title: "Post",
     tools: [
-      { name: 'Posts', icon: 'https://static.xx.fbcdn.net/rsrc.php/v3/y-/r/v23_gO1P2Y0.png' },
-      { name: 'Stories', icon: 'https://static.xx.fbcdn.net/rsrc.php/v3/yX/r/ODWoBvPPl_9.png' },
-      { name: 'Reels', icon: 'https://static.xx.fbcdn.net/rsrc.php/v3/y-/r/v23_gO1P2Y0.png' },
-      { name: 'Live', icon: 'https://static.xx.fbcdn.net/rsrc.php/v3/yR/r/f2TuHzmBl3n.png' },
-      { name: 'Playlists', icon: 'https://static.xx.fbcdn.net/rsrc.php/v3/yR/r/f2TuHzmBl3n.png' }
-    ]
-  },
-  {
-    title: 'Planning',
-    tools: [
-      { name: 'Planner', icon: 'https://static.xx.fbcdn.net/rsrc.php/v3/yT/r/Azx_I0zp-8g.png' },
-      { name: 'Content library', icon: 'https://static.xx.fbcdn.net/rsrc.php/v3/yv/r/S-ai-d82uiz.png' }
-    ]
-  },
-  {
-    title: 'Messaging',
-    tools: [
-      { name: 'Inbox', icon: 'https://static.xx.fbcdn.net/rsrc.php/v3/y5/r/TF2-tHV-QvQ.png' },
-      { name: 'Messenger', icon: 'https://static.xx.fbcdn.net/rsrc.php/v3/y5/r/TF2-tHV-QvQ.png' },
-      { name: 'Instagram Direct', icon: 'https://static.xx.fbcdn.net/rsrc.php/v3/y5/r/TF2-tHV-QvQ.png' }
+      { name: "Posts & Reels", icon: "https://static.xx.fbcdn.net/rsrc.php/v3/yA/r/y30B3Ry_o_i.png" },
+      { name: "Stories", icon: "https://static.xx.fbcdn.net/rsrc.php/v3/yv/r/UAaYclz2gch.png" },
+      { name: "Go Live", icon: "https://static.xx.fbcdn.net/rsrc.php/v3/yM/r/C0dDHej2T2g.png" },
+      { name: "Content library", icon: "https://static.xx.fbcdn.net/rsrc.php/v3/yv/r/UAaYclz2gch.png" },
+      { name: "Playlists", icon: "https://static.xx.fbcdn.net/rsrc.php/v3/yq/r/c3Vv_z0i2s5.png" },
+      { name: "Clips from videos", icon: "https://static.xx.fbcdn.net/rsrc.php/v3/yq/r/c3Vv_z0i2s5.png" },
     ],
-    extraLink: { text: 'Automations', href: '#' }
   },
   {
-    title: 'Monetization',
+    title: "Audience",
     tools: [
-      { name: 'Payouts', icon: 'https://static.xx.fbcdn.net/rsrc.php/v3/yG/r/E-YS8AS916q.png' },
-      { name: 'Ad center', icon: 'https://static.xx.fbcdn.net/rsrc.php/v3/yA/r/Cins-mgKoFv.png' },
-      { name: 'Orders', icon: 'https://static.xx.fbcdn.net/rsrc.php/v3/y_/r/4s2TDs35c-H.png' }
-    ]
+       { name: "Community manager", icon: "https://static.xx.fbcdn.net/rsrc.php/v3/yv/r/UAaYclz2gch.png" },
+       { name: "Comments manager", icon: "https://static.xx.fbcdn.net/rsrc.php/v3/yv/r/UAaYclz2gch.png" },
+    ],
   },
   {
-    title: 'Insights',
+    title: "Monetization",
     tools: [
-      { name: 'Overview', icon: 'https://static.xx.fbcdn.net/rsrc.php/v3/yE/r/xGchT2M-5QJ.png' },
-      { name: 'Results', icon: 'https://static.xx.fbcdn.net/rsrc.php/v3/yE/r/xGchT2M-5QJ.png' },
-      { name: 'Audience', icon: 'https://static.xx.fbcdn.net/rsrc.php/v3/yv/r/S-ai-d82uiz.png' }
-    ]
+      { name: "Payouts", icon: "https://static.xx.fbcdn.net/rsrc.php/v3/yS/r/8Bf2T5lk6q2.png" },
+      { name: "Stars", icon: "https://static.xx.fbcdn.net/rsrc.php/v3/yv/r/UAaYclz2gch.png" },
+      { name: "In-stream ads", icon: "https://static.xx.fbcdn.net/rsrc.php/v3/yv/r/UAaYclz2gch.png" },
+      { name: "Branded content", icon: "https://static.xx.fbcdn.net/rsrc.php/v3/yv/r/UAaYclz2gch.png" },
+      { name: "Subscriptions", icon: "https://static.xx.fbcdn.net/rsrc.php/v3/yv/r/UAaYclz2gch.png" },
+    ],
+  },
+  {
+    title: "Engagement",
+     extraLink: { text: "View all insights", href: "#" },
+    tools: [
+       { name: "Post reach", icon: "https://static.xx.fbcdn.net/rsrc.php/v3/yv/r/UAaYclz2gch.png", description: "1.2M" },
+       { name: "Post engagement", icon: "https://static.xx.fbcdn.net/rsrc.php/v3/yv/r/UAaYclz2gch.png", description: "345K" },
+       { name: "New followers", icon: "https://static.xx.fbcdn.net/rsrc.php/v3/yv/r/UAaYclz2gch.png", description: "1,234" },
+    ],
+  },
+  {
+    title: "Ads",
+     extraLink: { text: "Go to Ads Manager", href: "#" },
+    tools: [
+      { name: "Ad Centre", icon: "https://static.xx.fbcdn.net/rsrc.php/v3/yv/r/UAaYclz2gch.png" },
+      { name: "Create ad", icon: "https://static.xx.fbcdn.net/rsrc.php/v3/yv/r/UAaYclz2gch.png" },
+    ],
   }
-];
-
-export const MONETIZATION_TOOLS_DATA: MonetizationTool[] = [
-    { name: 'Stars', description: 'Fans can send you Stars on your content.', status: 'Active', earnings: 450.75 },
-    { name: 'In-Stream Ads', description: 'Earn money by including short ads in your videos.', status: 'Active', earnings: 723.81 },
-    { name: 'Fan Subscriptions', description: 'Fans can pay a monthly fee for exclusive content.', status: 'Eligible', earnings: 60.00 },
-];
-
-export const PAYOUT_DATA: Payout[] = [
-    { date: '2024-07-21', amount: 550.25, status: 'Paid', method: 'Bank Account ...1234' },
-    { date: '2024-06-21', amount: 489.10, status: 'Paid', method: 'Bank Account ...1234' },
-    { date: '2024-05-21', amount: 610.50, status: 'Paid', method: 'Bank Account ...1234' },
 ];
 
 export const SKILLS_DATA: SkillLevel[] = [
-  {
-    level: 1,
-    title: 'Content Foundations',
-    description: 'Learn the basics of creating and publishing content.',
-    challenges: [
-      { id: 'c1-1', title: 'Make Your First Text Post', description: 'Use the text post generator to create and publish an announcement.', icon: 'post', targetPostType: 'text' },
-      { id: 'c1-2', title: 'Create a Visual Post', description: 'Generate an image and caption for a visually appealing post.', icon: 'post', targetPostType: 'image' },
-      { id: 'c1-3', title: 'Craft a Video Script', description: 'Use the video script generator to outline your first video.', icon: 'post', targetPostType: 'video' },
-    ]
-  },
-  {
-    level: 2,
-    title: 'Audience Engagement',
-    description: 'Master the art of interacting with your followers.',
-    challenges: [
-      { id: 'c2-1', title: 'Analyze Comment Sentiment', description: 'Use the analysis tool to understand what your audience is saying.', icon: 'engage', targetPostType: 'comment_analysis' },
-      { id: 'c2-2', title: 'Run a Fact-Checked Post', description: 'Create a post on a trending topic using Google Search grounding.', icon: 'engage', targetPostType: 'grounded_text' },
-      { id: 'c2-3', title: 'Engage with a Brand Persona', description: 'Use the Brand Chat Assistant to answer a customer question.', icon: 'engage', targetPostType: 'brand_chat' },
-    ]
-  },
-  {
-    level: 3,
-    title: 'Monetization & Growth',
-    description: 'Explore strategies to earn from your content and grow your page.',
-    challenges: [
-      { id: 'c3-1', title: 'Create a Guided Monetization Post', description: 'Educate other creators using the guided post generator.', icon: 'monetize', targetPostType: 'guided' },
-      { id: 'c3-2', title: 'Design an Ad Creative', description: 'Generate a complete ad creative for a sample product.', icon: 'monetize', targetPostType: 'ad' },
-      { id: 'c3-3', title: 'Develop a Content Strategy', description: 'Generate a full JSON-based content strategy for your page.', icon: 'analyze', targetPostType: 'strategy' },
-    ]
-  },
-  {
-    level: 4,
-    title: 'Advanced Technologies',
-    description: 'Understand the deep-tech concepts that power modern systems.',
-    challenges: [
-      { id: 'c4-1', title: 'Secure Your Data: Understand Digital Signatures', description: 'Use the simulator to sign and verify a message, learning how cryptography protects data.', icon: 'secure', targetPostType: 'crypto_simulator' },
-    ]
-  }
+    {
+        level: 1,
+        title: "Content Creator",
+        description: "Learn the fundamentals of creating and publishing engaging content.",
+        challenges: [
+            { id: 'c1-1', title: "Create a Text Post", description: "Generate a simple, informative text post about a topic you're passionate about.", icon: 'post', targetPostType: 'text' },
+            { id: 'c1-2', title: "Generate an Image Post", description: "Craft a compelling caption and generate a relevant image to accompany it.", icon: 'post', targetPostType: 'image' },
+            { id: 'c1-3', title: "Script a Short Video", description: "Come up with an idea for a short video and generate a script for it.", icon: 'post', targetPostType: 'video' },
+        ]
+    },
+    {
+        level: 2,
+        title: "Community Builder",
+        description: "Engage with your audience and analyze their feedback to build a loyal community.",
+        challenges: [
+            { id: 'c2-1', title: "Analyze Post Comments", description: "Use the Comment Analysis tool to understand the sentiment and themes in audience feedback.", icon: 'engage', targetPostType: 'comment_analysis' },
+            { id: 'c2-2', title: "Fact-Check a Post", description: "Use the Grounded Post generator to create a post with verifiable sources, building trust with your audience.", icon: 'post', targetPostType: 'grounded_text' },
+            { id: 'c2-3', title: "Chat with your Brand AI", description: "Interact with the Brand Chat assistant to understand your brand's voice and persona.", icon: 'engage', targetPostType: 'brand_chat' },
+        ]
+    },
+    {
+        level: 3,
+        title: "Monetization Strategist",
+        description: "Explore different ways to monetize your content and drive revenue.",
+        challenges: [
+            { id: 'c3-1', title: "Create an Ad Creative", description: "Generate a compelling ad for a fictional product or service.", icon: 'monetize', targetPostType: 'ad' },
+            { id: 'c3-2', title: "Launch a Monetized Article", description: "Create a full campaign with a Facebook post driving to a monetizable AMP article.", icon: 'monetize', targetPostType: 'monetized_article_campaign' },
+            { id: 'c3-3', title: "Write an SEO-Optimized Article", description: "Generate a long-form article optimized for search engines to drive organic traffic.", icon: 'post', targetPostType: 'seo_blog_post' },
+        ]
+    }
+];
+
+export const PROFESSIONAL_DASHBOARD_DATA: ProDashboardCategory[] = [
+    {
+        category_name: 'Your tools',
+        items: [
+            { name: 'Monetization', description: 'Access tools to earn money.' },
+            { name: 'Comments manager', description: 'Easily view and respond to comments.' },
+            { name: 'Inspiration hub', description: 'Discover content ideas.', feature: 'New' },
+        ],
+    },
+    {
+        category_name: 'Tools to try',
+        items: [
+            { name: 'A/B Tests', description: 'Test content to see what works best.' },
+            { name: 'Mentions', description: 'Engage with your audience when they mention you.' },
+            { name: 'Collaborations', description: 'Manage branded content and partnerships.', feature: 'Updated' },
+        ]
+    },
+];
+
+export const MONETIZATION_TOOLS_DATA: MonetizationTool[] = [
+    { name: 'Stars', description: 'Fans can send you Stars on your content.', status: 'Active', earnings: 542.80 },
+    { name: 'In-Stream Ads', description: 'Earn money by including ads in your videos.', status: 'Active', earnings: 651.12 },
+    { name: 'Fan Subscriptions', description: 'Fans can pay a monthly fee for exclusive content.', status: 'Eligible', earnings: 0.00 },
+];
+
+export const PAYOUT_DATA: Payout[] = [
+    { date: '2024-07-21', amount: 450.50, status: 'Paid', method: 'Bank Transfer' },
+    { date: '2024-06-21', amount: 398.22, status: 'Paid', method: 'Bank Transfer' },
+    { date: '2024-05-21', amount: 512.90, status: 'Paid', method: 'Bank Transfer' },
 ];
 
 export const WORKFLOW_JSON_DATA = {
   "versioning": {
-    "workflowVersion": "2.0",
-    "schemaVersion": "1.5",
+    "workflowVersion": "1.2.0",
+    "schemaVersion": "1.0",
     "author": { "name": "Gazi Pollob Hussain", "alias": "GPH" },
-    "lastUpdated": "2024-07-22T10:00:00Z"
+    "lastUpdated": "2025-01-15T18:30:00Z"
   },
   "AikoVenvWorkflow": {
     "user": {
-      "type": "StartNode",
-      "description": "User initiates an action via an app (e.g., Messenger, Katana).",
-      "next": ["PermissionsCheck"]
+      "action": "SubmitPrompt",
+      "next": ["ContentSafetyFilter"],
+      "loopBack": null
     },
-    "PermissionsCheck": {
-      "type": "ConditionalNode",
-      "description": "Verify if the app has the required permissions to proceed.",
-      "permissionsRequired": ["MANAGE_MESSAGING", "MANAGE_CALLING"],
+    "ContentSafetyFilter": {
+      "action": "AnalyzeText",
+      "parameters": ["prompt.text"],
       "next": ["AppsValidationLayer"],
-      "fallback": "PermissionsErrorHandler"
+      "loopBack": null
     },
     "AppsValidationLayer": {
-      "type": "ValidationNode",
-      "description": "Cryptographically verify the calling app's signature to ensure it's an official, unmodified client.",
+      "action": "VerifySignatures",
       "officialApps": [
-        {
-          "name": "Messenger",
-          "package": "com.facebook.orca",
-          "algorithm": "sha256withrsa",
-          "permissions": ["MANAGE_MESSAGING", "MANAGE_CALLING"]
-        },
-        {
-          "name": "Facebook",
-          "package": "com.facebook.katana",
-          "algorithm": "sha256withrsa",
-          "permissions": ["LITE_PROVIDER_ACCESS"]
-        }
+        { "name": "Messenger", "package": "com.facebook.orca", "permissions": ["..."], "algorithm": "sha256withrsa" },
+        { "name": "Facebook", "package": "com.facebook.katana", "permissions": ["..."], "algorithm": "sha256withrsa" }
       ],
-      "next": ["ActionRouter"]
-    },
-    "ActionRouter": {
-      "type": "RouterNode",
-      "description": "Routes the request based on the user's intent.",
-      "routes": [
-        { "intent": "SendMessage", "target": "SendMessageFlow" },
-        { "intent": "InitiateCall", "target": "InitiateCallFlow" }
-      ],
-      "default": "UnsupportedActionHandler"
-    },
-    "SendMessageFlow": {
-      "type": "ExecutionNode",
-      "description": "Executes the logic to send a message.",
-      "action": "sendMessage",
-      "next": ["Finalize"]
-    },
-    "InitiateCallFlow": {
-      "type": "ExecutionNode",
-      "description": "Executes the logic to initiate a call.",
-      "action": "startCall",
-      "next": ["Finalize"]
-    },
-    "Finalize": {
-      "type": "EndNode",
-      "description": "Action completed successfully.",
+      "next": ["ResponseGeneration"],
       "loopBack": ["user"]
     },
-    "PermissionsErrorHandler": {
-      "type": "ErrorNode",
-      "description": "Handles cases where required permissions are missing."
+    "ResponseGeneration": {
+      "action": "GenerateLLMResponse",
+      "model": "gemini-2.5-flash",
+      "next": ["FinalOutput"],
+      "loopBack": null
     },
-    "UnsupportedActionHandler": {
-      "type": "ErrorNode",
-      "description": "Handles unrecognized user intents."
+    "FinalOutput": {
+      "action": "FormatResponse",
+      "template": "standard_post",
+      "next": null,
+      "loopBack": null
     }
   }
 };
 
-export const STELLA_NLU_SYSTEM_INSTRUCTION = `You are Stella, a voice assistant's Natural Language Understanding (NLU) model. Your sole purpose is to analyze the user's transcript and classify their intent and extract relevant entities. You can handle requests for setting reminders, getting the weather, controlling smart home devices, and providing sports scores. If the request doesn't fit any of these, classify it as CONVERSATIONAL. Output ONLY a valid JSON object that strictly adheres to the provided schema. Do not include any markdown formatting or explanatory text.`;
 
-export const STELLA_NLU_SCHEMA = {
-  type: Type.OBJECT,
-  properties: {
-    intent: {
-      type: Type.STRING,
-      enum: ['SET_REMINDER', 'GET_WEATHER', 'CONTROL_DEVICE', 'GET_SPORTS_SCORE', 'CONVERSATIONAL'],
-    },
-    entities: {
-      type: Type.OBJECT,
-      properties: {
-        task: { type: Type.STRING, description: 'The task for the reminder.', nullable: true },
-        time: { type: Type.STRING, description: 'The time for the reminder.', nullable: true },
-        location: { type: Type.STRING, description: 'The location for the weather request.', nullable: true },
-        device_name: { type: Type.STRING, description: 'The name of the smart home device.', nullable: true },
-        device_state: { type: Type.STRING, enum: ['on', 'off'], description: 'The desired state of the device.', nullable: true },
-        team_name: { type: Type.STRING, description: 'The name of the sports team.', nullable: true },
-        time_period: { type: Type.STRING, description: "Optional time reference like 'last night'.", nullable: true },
-      },
-    },
-  },
-  oneOf: [
-    {
-      type: Type.OBJECT,
-      properties: {
-        intent: {
-          type: Type.STRING,
-          const: 'SET_REMINDER',
+export const AI_DATA_PROVENANCE_DATA = {
+    "AIDataInteractionRecord": {
+        "@context": {
+            "gix": "https://gixframework.org/terms/",
+            "prov": "http://www.w3.org/ns/prov#",
+            "sec": "https://w3id.org/security#",
+            "xsd": "http://www.w3.org/2001/XMLSchema#"
         },
-        entities: {
-          type: Type.OBJECT,
-          properties: {
-            task: { type: Type.STRING },
-            time: { type: Type.STRING },
-          },
-          required: ['task', 'time'],
+        "@type": "gix:AIDataInteractionRecord",
+        "gix:humanUser": {
+            "@type": "gix:HumanUser",
+            "gix:userHandle": "PollobHussain",
+            "gix:userRole": "Founder and GIX Architect"
         },
-      },
-    },
-    {
-      type: Type.OBJECT,
-      properties: {
-        intent: {
-          type: Type.STRING,
-          const: 'GET_WEATHER',
+        "gix:aiModel": {
+            "@type": "gix:AIModel",
+            "gix:name": "Gemini AI",
+            "gix:version": "1.0",
+            "gix:dataHandlingPolicy": "Ethical, consent-based, non-retention",
+            "gix:capabilities": [
+                "naturalLanguageProcessing",
+                "imageCaptioning",
+                "ethicalAuditing",
+                "dataAnonymization",
+                "consentManagement",
+                "provenanceStamping"
+            ]
         },
-        entities: {
-          type: Type.OBJECT,
-          properties: {
-            location: { type: Type.STRING },
-          },
-          required: ['location'],
+        "gix:complianceAssessment": {
+            "@type": "gix:GIXComplianceAssessment",
+            "gix:mindfulnessScore": 0.97,
+            "gix:dignityScore": 0.99,
+            "gix:violationDetected": {
+                "gix:violationType": "Minor IP Info Exposure",
+                "gix:remedialAction": "Immediate clarification issued; logged for audit"
+            }
         },
-      },
-    },
-    {
-      type: Type.OBJECT,
-      properties: {
-        intent: {
-          type: Type.STRING,
-          const: 'CONTROL_DEVICE',
+        "prov:wasGeneratedBy": {
+            "@type": "prov:Activity",
+            "prov:startedAtTime": "2025-05-31T10:00:00Z",
+            "prov:endedAtTime": "2025-05-31T10:05:00Z",
+            "prov:wasAssociatedWith": {
+                "prov:agent": "ChatGPT",
+                "prov:role": "Collaborative AI Partner"
+            }
         },
-        entities: {
-          type: Type.OBJECT,
-          properties: {
-            device_name: { type: Type.STRING },
-            device_state: { type: Type.STRING, enum: ['on', 'off'] },
-          },
-          required: ['device_name', 'device_state'],
-        },
-      },
-    },
-     {
-      type: Type.OBJECT,
-      properties: {
-        intent: {
-          type: Type.STRING,
-          const: 'GET_SPORTS_SCORE',
-        },
-        entities: {
-          type: Type.OBJECT,
-          properties: {
-            team_name: {
-              type: Type.STRING,
-              description: 'The name of the sports team the user is asking about.',
-            },
-            time_period: {
-              type: Type.STRING,
-              description: "Optional time reference like 'last night' or 'today'.",
-              nullable: true,
-            },
-          },
-          required: ['team_name'],
-        },
-      },
-    },
-    {
-      type: Type.OBJECT,
-      properties: {
-        intent: {
-          type: Type.STRING,
-          const: 'CONVERSATIONAL',
-        },
-      },
-    },
-  ],
+        "sec:proof": {
+            "@type": "sec:Proof",
+            "sec:proofValue": "9f4a7b2e1d8c3f0a5b6e...abc123ef4d5a6b7c8d9e0f1a2b3c4d5e",
+            "sec:proofPurpose": "assertionMethod"
+        }
+    }
 };

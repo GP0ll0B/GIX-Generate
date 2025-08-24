@@ -1,11 +1,11 @@
-
-
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { WORKFLOW_JSON_DATA } from '../constants';
 import { Button } from './ui/Button';
 import { Loader } from './ui/Loader';
 import { PlayIcon, DocumentTextIcon, InfoIcon, ErrorIcon, SparklesIcon, CubeIcon, CheckCircleIcon, GridIcon, CopyIcon, CheckIcon, XIcon, WorkflowIcon } from './ui/icons';
+
+const MotionDiv = motion.div;
 
 /**
  * LogEntry defines the structure for a single log message in the simulation.
@@ -87,7 +87,7 @@ const Log: React.FC<{ entry: LogEntry, isActive: boolean }> = ({ entry, isActive
     const Icon = iconMap[entry.type] || <InfoIcon />;
 
     return (
-        <motion.div
+        <MotionDiv
             layout
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -104,7 +104,7 @@ const Log: React.FC<{ entry: LogEntry, isActive: boolean }> = ({ entry, isActive
                     </div>
                 )}
             </div>
-        </motion.div>
+        </MotionDiv>
     );
 };
 

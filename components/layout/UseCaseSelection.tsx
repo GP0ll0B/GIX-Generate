@@ -5,8 +5,10 @@ import { UseCaseCard } from '../ui/UseCaseCard';
 import { 
     DocumentTextIcon, MegaphoneIcon, VideoCameraIcon, 
     LightBulbIcon, FileJsonIcon, ChartBarIcon, 
-    GridIcon, CubeIcon, WorkflowIcon, ChatBubbleIcon, UsersIcon, BuildingStorefrontIcon, LockIcon, MicrophoneIcon, HandshakeIcon 
+    GridIcon, CubeIcon, WorkflowIcon, ChatBubbleIcon, UsersIcon, BuildingStorefrontIcon, LockIcon, MicrophoneIcon, HandshakeIcon, LightningBoltIcon, DocumentDollarIcon, DocumentSearchIcon, QuestionMarkCircleIcon, DocumentCheckIcon 
 } from '../ui/icons';
+
+const MotionDiv = motion.div;
 
 interface UseCaseSelectionProps {
     onSelectUseCase: (useCase: UseCase) => void;
@@ -28,7 +30,11 @@ const getIconForUseCase = (id: string): React.ReactNode => {
     if (id.includes('chat') || id.includes('dialog')) return <ChatBubbleIcon />;
     if (id.includes('comment') || id.includes('dashboard')) return <UsersIcon />;
     if (id.includes('google-business')) return <BuildingStorefrontIcon />;
+    if (id.includes('amp-prototype')) return <LightningBoltIcon />;
+    if (id.includes('monetized-campaign')) return <DocumentDollarIcon />;
     if (id.includes('crypto')) return <LockIcon />;
+    if (id.includes('ai-data-provenance')) return <DocumentSearchIcon />;
+    if (id.includes('ethical-protocol')) return <DocumentCheckIcon />;
     return <DocumentTextIcon />;
 };
 
@@ -88,22 +94,22 @@ export const UseCaseSelection: React.FC<UseCaseSelectionProps> = ({ onSelectUseC
                 ))}
             </div>
 
-            <motion.div
+            <MotionDiv
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
                 className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
             >
                 {filteredUseCases.map(useCase => (
-                    <motion.div key={useCase.id} variants={cardVariants}>
+                    <MotionDiv key={useCase.id} variants={cardVariants}>
                         <UseCaseCard
                             useCase={useCase}
                             onSelect={() => onSelectUseCase(useCase)}
                             icon={getIconForUseCase(useCase.id)}
                         />
-                    </motion.div>
+                    </MotionDiv>
                 ))}
-            </motion.div>
+            </MotionDiv>
         </div>
     );
 };
