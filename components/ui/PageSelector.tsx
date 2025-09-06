@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { FacebookPage } from '../../constants';
+import { FacebookPage } from '../../types';
 import { CheckIcon, ChevronDownIcon } from './icons';
 
 interface PageSelectorProps {

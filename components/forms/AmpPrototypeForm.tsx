@@ -1,5 +1,7 @@
+
+
 import React from 'react';
-import { AmpPrototypeInput } from '../../constants';
+import { AmpPrototypeInput } from '../../types';
 
 interface AmpPrototypeFormProps {
     input: AmpPrototypeInput;

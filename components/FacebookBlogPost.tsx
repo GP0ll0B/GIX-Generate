@@ -1,8 +1,10 @@
+
+
 import React from 'react';
-import { GeneratedContent, SIGNATURE_HTML_FOR_TEXT_POST } from '../constants';
+import { GeneratedContent } from '../types';
 import { Button } from './ui/Button';
 import { Loader } from './ui/Loader';
-import { SparklesIcon } from './ui/icons';
+import { SparklesIcon, ExternalLinkIcon } from './ui/icons';
 import { PostHeader } from './PostHeader';
 import { Hashtags } from './Hashtags';
 import { SignatureBlock } from './SignatureBlock';
@@ -12,57 +14,77 @@ import { BrandReviewPanel } from './BrandReviewPanel';
 // Simple Markdown to React component renderer
 const MarkdownRenderer: React.FC<{ content: string }> = ({ content }) => {
     const processLine = (line: string): React.ReactNode => {
-        const parts = line.split('**');
-        return parts.map((part, i) =>
-            i % 2 === 1 ? <strong key={i}>{part}</strong> : part
-        );
+        const linkRegex = /\[\[(.*?)\]\]/g;
+        const parts = line.split(linkRegex);
+
+        return parts.map((part, i) => {
+            if (i % 2 === 1) { // Content inside [[...]]
+                const query = encodeURIComponent(part);
+                return (
+                    <a 
+                        key={i} 
+                        href={`https://www.google.com/search?q=${query}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="inline-flex items-center text-blue-600 dark:text-blue-400 border-b border-blue-400/50 border-dashed hover:border-solid hover:border-blue-500 transition-all duration-200"
+                    >
+                        {part}
+                        <ExternalLinkIcon className="h-3 w-3 ml-1 opacity-60" />
+                    </a>
+                );
+            } else { // Regular text, process for bold
+                const boldParts = part.split('**');
+                return boldParts.map((boldPart, j) => 
+                    j % 2 === 1 ? <strong key={`${i}-${j}`}>{boldPart}</strong> : boldPart
+                );
+            }
+        });
     };
 
     const lines = content.split('\n');
     const elements: React.ReactNode[] = [];
     let listItems: string[] = [];
+    let inList = false;
 
     const flushList = () => {
-        if (listItems.length > 0) {
+        if (inList && listItems.length > 0) {
             elements.push(
-                <ul key={`ul-${elements.length}`} className="list-disc list-inside my-2 pl-4 space-y-1">
+                <ul key={`ul-${elements.length}`} className="list-disc list-inside my-4 pl-4 space-y-2">
                     {listItems.map((item, index) => <li key={index}>{processLine(item)}</li>)}
                 </ul>
             );
-            listItems = [];
         }
+        listItems = [];
+        inList = false;
     };
 
     lines.forEach((line, index) => {
         const trimmedLine = line.trim();
 
-        if (!trimmedLine) {
+        if (trimmedLine.startsWith('#### ')) {
             flushList();
-            elements.push(<br key={index} />);
-            return;
-        }
-
-        // Handle headings
-        if (trimmedLine.startsWith('## ')) {
+            elements.push(<h5 key={index} className="text-lg font-semibold mt-4 mb-2">{processLine(trimmedLine.substring(5))}</h5>);
+        } else if (trimmedLine.startsWith('### ')) {
             flushList();
-            elements.push(<h3 key={index} className="text-xl font-bold mt-4 mb-2">{trimmedLine.substring(3)}</h3>);
-            return;
-        }
-        if (trimmedLine.startsWith('# ')) {
+            elements.push(<h4 key={index} className="text-xl font-bold mt-5 mb-2">{processLine(trimmedLine.substring(4))}</h4>);
+        } else if (trimmedLine.startsWith('## ')) {
             flushList();
-            elements.push(<h2 key={index} className="text-2xl font-bold mt-6 mb-3">{trimmedLine.substring(2)}</h2>);
-            return;
-        }
-
-        // Handle list items
-        if (trimmedLine.startsWith('* ')) {
+            elements.push(<h3 key={index} className="text-2xl font-bold mt-6 mb-3">{processLine(trimmedLine.substring(3))}</h3>);
+        } else if (trimmedLine.startsWith('# ')) {
+            flushList();
+            elements.push(<h2 key={index} className="text-3xl font-extrabold mt-8 mb-4">{processLine(trimmedLine.substring(2))}</h2>);
+        } else if (trimmedLine.startsWith('* ')) {
+            if (!inList) inList = true;
             listItems.push(trimmedLine.substring(2));
-            return;
+        } else if (trimmedLine === '***' || trimmedLine === '---') {
+            flushList();
+            elements.push(<hr key={index} className="my-6 border-gray-300 dark:border-gray-600" />);
+        } else if (trimmedLine) {
+            flushList();
+            elements.push(<p key={index} className="my-4 leading-relaxed">{processLine(trimmedLine)}</p>);
+        } else {
+             flushList();
         }
-
-        flushList();
-        
-        elements.push(<p key={index} className="my-2">{processLine(trimmedLine)}</p>);
     });
     
     flushList();
@@ -140,7 +162,7 @@ export const FacebookBlogPost: React.FC<FacebookBlogPostProps> = ({
 
       <div className="p-4 sm:p-6">
         <Hashtags hashtags={post.hashtags} />
-        <SignatureBlock html={SIGNATURE_HTML_FOR_TEXT_POST} />
+        <SignatureBlock variant="text" />
       </div>
       <BrandReviewPanel post={post} onReview={onReview} />
       <PlatformDetails />

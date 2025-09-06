@@ -1,5 +1,5 @@
 import React from 'react';
-import { MetaAdsEvent } from '../../constants';
+import { MetaAdsEvent } from '../../types';
 
 interface GanttChartProps {
     events: MetaAdsEvent[];

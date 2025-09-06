@@ -1,8 +1,5 @@
-
-
-
 import React from 'react';
-import { GeneratedContent } from '../constants';
+import { GeneratedContent } from '../types';
 import { Button } from './ui/Button';
 import { Hashtags } from './Hashtags';
 import { PlatformDetails } from './PlatformDetails';

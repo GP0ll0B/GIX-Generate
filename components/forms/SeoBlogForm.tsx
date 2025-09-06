@@ -1,12 +1,15 @@
 import React from 'react';
-import { SeoBlogInput } from '../../constants';
+import { SeoBlogInput } from '../../types';
+import { ToggleSwitch } from '../ui/ToggleSwitch';
 
 interface SeoBlogFormProps {
     input: SeoBlogInput;
     setInput: React.Dispatch<React.SetStateAction<SeoBlogInput>>;
+    autoLinkKeywords: boolean;
+    setAutoLinkKeywords: (enabled: boolean) => void;
 }
 
-export const SeoBlogForm: React.FC<SeoBlogFormProps> = ({ input, setInput }) => {
+export const SeoBlogForm: React.FC<SeoBlogFormProps> = ({ input, setInput, autoLinkKeywords, setAutoLinkKeywords }) => {
     const handleInputChange = (field: keyof SeoBlogInput, value: string) => {
         setInput(prev => ({ ...prev, [field]: value }));
     };
@@ -58,6 +61,14 @@ export const SeoBlogForm: React.FC<SeoBlogFormProps> = ({ input, setInput }) => 
                 >
                     {tones.map(tone => <option key={tone} value={tone}>{tone}</option>)}
                 </select>
+            </div>
+            <div className="pt-4 border-t border-gray-200/50 dark:border-gray-600/50">
+                <ToggleSwitch
+                    label="Auto-link Keywords"
+                    enabled={autoLinkKeywords}
+                    onChange={setAutoLinkKeywords}
+                    description="Automatically turn key terms into Google Search links in the final article."
+                />
             </div>
         </div>
     );

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { GeneratedContent, PostType, SIGNATURE_TEXT_FOR_COPY, Source } from '../../constants';
+import { GeneratedContent, PostType, Source } from '../../types';
+import { SIGNATURE_TEXT_FOR_COPY, GIX_BLOG_URL } from '../../constants';
 import { PostSkeleton } from '../PostSkeleton';
-import { ChevronDownIcon, LinkIcon, SparklesIcon } from '../ui/icons';
+import { ChevronDownIcon, LinkIcon, SparklesIcon, ExternalLinkIcon } from '../ui/icons';
 import { FacebookPost } from '../FacebookPost';
 import { FacebookGroundedPost } from '../FacebookGroundedPost';
 import { FacebookImagePost } from '../FacebookImagePost';
@@ -10,7 +11,6 @@ import { FacebookVideoPost } from '../FacebookVideoPost';
 import { FacebookAnalysisPost } from '../FacebookAnalysisPost';
 import { FacebookAdPost } from '../FacebookAdPost';
 import { ActionBar } from '../ActionBar';
-import { FacebookGeneratedVideoPost } from '../FacebookGeneratedVideoPost';
 import { FacebookVoiceDialogPost } from '../FacebookVoiceDialogPost';
 import { FacebookGuidedPost } from '../FacebookGuidedPost';
 import { GoogleBusinessPost } from '../GoogleBusinessPost';
@@ -21,6 +21,12 @@ import MonetizedArticleCampaignPost from '../MonetizedArticleCampaignPost';
 import { BrandReviewPanel } from '../BrandReviewPanel';
 import { PostHeader } from '../PostHeader';
 import { PlatformDetails } from '../PlatformDetails';
+import { EmailSubjectPreview } from '../EmailSubjectPreview';
+import { EmailBodyPreview } from '../EmailBodyPreview';
+import { AutomatedResponderPost } from '../AutomatedResponderPost';
+import { PostEngagementStrategistView } from '../PostEngagementStrategistView';
+
+const MotionDiv = motion.div as any;
 
 interface PreviewStageProps {
   isLoading: boolean;
@@ -29,12 +35,13 @@ interface PreviewStageProps {
   contentVariations: GeneratedContent[];
   currentVariationIndex: number;
   setCurrentVariationIndex: (index: number) => void;
-  onGenerateImage?: () => void;
+  onGenerateImage?: (is360: boolean) => void;
   onPromptChange?: (prompt: string) => void;
   onPublish: () => void;
   onReviewBrandAlignment: (variationIndex: number) => void;
-  onTitleSelect?: (selectedTitle: string, variationIndex: number) => void;
+  onTitleSelect?: (selectedTitle: string, variationIndex: number, autoLinkKeywords: boolean) => void;
   showToast: (message: string, type: 'success' | 'error') => void;
+  autoLinkKeywords: boolean;
 }
 
 const EmptyState: React.FC = () => (
@@ -48,57 +55,80 @@ const EmptyState: React.FC = () => (
 // Simple Markdown to React component renderer
 const MarkdownRenderer: React.FC<{ content: string }> = ({ content }) => {
     const processLine = (line: string): React.ReactNode => {
-        const parts = line.split('**');
-        return parts.map((part, i) =>
-            i % 2 === 1 ? <strong key={i}>{part}</strong> : part
-        );
+        const linkRegex = /\[\[(.*?)\]\]/g;
+        const parts = line.split(linkRegex);
+
+        return parts.map((part, i) => {
+            if (i % 2 === 1) { // Content inside [[...]]
+                const query = encodeURIComponent(part);
+                return (
+                    <a 
+                        key={i} 
+                        href={`https://www.google.com/search?q=${query}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="inline-flex items-center text-blue-600 dark:text-blue-400 border-b border-blue-400/50 border-dashed hover:border-solid hover:border-blue-500 transition-all duration-200"
+                    >
+                        {part}
+                        <ExternalLinkIcon className="h-3 w-3 ml-1 opacity-60" />
+                    </a>
+                );
+            } else { // Regular text, process for bold
+                const boldParts = part.split('**');
+                return boldParts.map((boldPart, j) => 
+                    j % 2 === 1 ? <strong key={`${i}-${j}`}>{boldPart}</strong> : boldPart
+                );
+            }
+        });
     };
 
     const lines = content.split('\n');
     const elements: React.ReactNode[] = [];
     let listItems: string[] = [];
+    let inList = false;
 
     const flushList = () => {
-        if (listItems.length > 0) {
+        if (inList && listItems.length > 0) {
             elements.push(
-                <ul key={`ul-${elements.length}`} className="list-disc list-inside my-2 pl-4 space-y-1">
+                <ul key={`ul-${elements.length}`} className="list-disc list-inside my-4 pl-4 space-y-2">
                     {listItems.map((item, index) => <li key={index}>{processLine(item)}</li>)}
                 </ul>
             );
-            listItems = [];
         }
+        listItems = [];
+        inList = false;
     };
 
     lines.forEach((line, index) => {
         const trimmedLine = line.trim();
 
-        if (!trimmedLine) {
+        if (trimmedLine.startsWith('#### ')) {
             flushList();
-            return;
-        }
-
-        if (trimmedLine.startsWith('## ')) {
+            elements.push(<h5 key={index} className="text-lg font-semibold mt-4 mb-2">{processLine(trimmedLine.substring(5))}</h5>);
+        } else if (trimmedLine.startsWith('### ')) {
             flushList();
-            elements.push(<h3 key={index} className="text-xl font-bold mt-4 mb-2">{trimmedLine.substring(3)}</h3>);
-            return;
-        }
-        if (trimmedLine.startsWith('# ')) {
+            elements.push(<h4 key={index} className="text-xl font-bold mt-5 mb-2">{processLine(trimmedLine.substring(4))}</h4>);
+        } else if (trimmedLine.startsWith('## ')) {
             flushList();
-            elements.push(<h2 key={index} className="text-2xl font-bold mt-6 mb-3">{trimmedLine.substring(2)}</h2>);
-            return;
-        }
-
-        if (trimmedLine.startsWith('* ')) {
+            elements.push(<h3 key={index} className="text-2xl font-bold mt-6 mb-3">{processLine(trimmedLine.substring(3))}</h3>);
+        } else if (trimmedLine.startsWith('# ')) {
+            flushList();
+            elements.push(<h2 key={index} className="text-3xl font-extrabold mt-8 mb-4">{processLine(trimmedLine.substring(2))}</h2>);
+        } else if (trimmedLine.startsWith('* ')) {
+            if (!inList) inList = true;
             listItems.push(trimmedLine.substring(2));
-            return;
+        } else if (trimmedLine === '***' || trimmedLine === '---') {
+            flushList();
+            elements.push(<hr key={index} className="my-6 border-gray-300 dark:border-gray-600" />);
+        } else if (trimmedLine) {
+            flushList();
+            elements.push(<p key={index} className="my-4 leading-relaxed">{processLine(trimmedLine)}</p>);
+        } else {
+             flushList();
         }
-
-        flushList();
-        
-        elements.push(<p key={index} className="my-2">{processLine(trimmedLine)}</p>);
     });
     
-    flushList();
+    flushList(); // Flush any remaining list items at the end
 
     return <>{elements}</>;
 };
@@ -205,7 +235,7 @@ const SeoBlogPost: React.FC<{
 
 export const PreviewStage: React.FC<PreviewStageProps> = ({
   isLoading, isGeneratingImage, postType, contentVariations, currentVariationIndex,
-  setCurrentVariationIndex, onGenerateImage, onPromptChange, onPublish, onReviewBrandAlignment, showToast, onTitleSelect
+  setCurrentVariationIndex, onGenerateImage, onPromptChange, onPublish, onReviewBrandAlignment, showToast, onTitleSelect, autoLinkKeywords
 }) => {
     
     const fadeAnimation = {
@@ -224,8 +254,9 @@ export const PreviewStage: React.FC<PreviewStageProps> = ({
         let textToCopy = '';
         
         if (content.type === 'text' || content.type === 'guided' || content.type === 'grounded_text' || content.type === 'analysis') {
-          const hashtagsText = content.hashtags?.join(' ') || '';
-          textToCopy = `${content.content}\n\n${hashtagsText}\n\n${SIGNATURE_TEXT_FOR_COPY}`;
+          const hashtagsText = 'hashtags' in content && content.hashtags?.join(' ') || '';
+          const mainText = content.type === 'text' ? content.caption : content.content;
+          textToCopy = `${mainText}\n\n${hashtagsText}\n\n${SIGNATURE_TEXT_FOR_COPY}`;
         } else if (content.type === 'video') {
           const hashtagsText = content.hashtags?.join(' ') || '';
           textToCopy = `${content.title}\n\n${content.message}\n\n${hashtagsText}\n\n${SIGNATURE_TEXT_FOR_COPY}`;
@@ -339,6 +370,8 @@ ${htmlBody}
     </div>
   </body>
 </html>`;
+        } else if (content.type === 'automated_responder') {
+            textToCopy = JSON.stringify(content.flow, null, 2);
         }
         
         navigator.clipboard.writeText(textToCopy);
@@ -356,7 +389,7 @@ ${htmlBody}
                 <FacebookAdPost 
                     post={post}
                     isGeneratingImage={isGeneratingImage!}
-                    onGenerateImage={onGenerateImage!}
+                    onGenerateImage={() => onGenerateImage?.(false)}
                     onPromptChange={onPromptChange!}
                     onReview={onReview}
                 />
@@ -365,7 +398,7 @@ ${htmlBody}
                 <FacebookAllianceAdPost 
                     post={post}
                     isGeneratingImage={isGeneratingImage!}
-                    onGenerateImage={onGenerateImage!}
+                    onGenerateImage={() => onGenerateImage?.(false)}
                     onPromptChange={onPromptChange!}
                     onReview={onReview}
                 />
@@ -384,7 +417,7 @@ ${htmlBody}
                 <GoogleBusinessPost 
                     post={post}
                     isGeneratingImage={isGeneratingImage!}
-                    onGenerateImage={onGenerateImage!}
+                    onGenerateImage={() => onGenerateImage?.(false)}
                     onPromptChange={onPromptChange!}
                     onReview={onReview}
                 />
@@ -393,45 +426,62 @@ ${htmlBody}
                 <MonetizedArticleCampaignPost
                     post={post}
                     isGeneratingImage={isGeneratingImage!}
-                    onGenerateImage={onGenerateImage!}
+                    onGenerateImage={() => onGenerateImage?.(false)}
                     onPromptChange={onPromptChange!}
                     onReview={onReview}
                     showToast={showToast}
                 />
             );
             case 'video': return <FacebookVideoPost post={post} onReview={onReview} />;
-            case 'video_generation': return <FacebookGeneratedVideoPost post={post} />;
             case 'voice_dialog': return <FacebookVoiceDialogPost post={post} />;
             case 'analysis': return <FacebookAnalysisPost post={post} onReview={onReview} />;
             case 'blog': return (
                 <FacebookBlogPost 
                     post={post}
                     isGeneratingImage={isGeneratingImage!}
-                    onGenerateImage={onGenerateImage!}
+                    onGenerateImage={() => onGenerateImage?.(false)}
                     onPromptChange={onPromptChange!}
                     onReview={onReview}
                 />
             );
-            case 'seo_blog_post': return <SeoBlogPost post={post} onSelectTitle={(title) => onTitleSelect?.(title, currentVariationIndex)} onReview={onReview} />;
+            case 'seo_blog_post': return <SeoBlogPost post={post} onSelectTitle={(title) => onTitleSelect?.(title, currentVariationIndex, autoLinkKeywords)} onReview={onReview} />;
             case 'prototype': return <AmpArticlePrototype post={post} onReview={onReview} />;
+            case 'email_subject': return <EmailSubjectPreview post={post} onReview={onReview} />;
+            case 'email_body': return <EmailBodyPreview post={post} onReview={onReview} />;
+            case 'automated_responder': return <AutomatedResponderPost post={post} onReview={onReview} showToast={showToast} />;
+            case 'post_engagement_strategist': return <PostEngagementStrategistView post={post} onReview={onReview} />;
             default: return null;
         }
     };
     
+    const isBlogPost = currentPost?.type === 'blog' || (currentPost?.type === 'seo_blog_post' && currentPost.stage === 'article');
+
     return (
         <div className="relative min-h-[600px] lg:min-h-0 lg:h-full">
             <AnimatePresence mode="wait">
                 {isLoading ? (
-                    <motion.div key="skeleton" initial={fadeAnimation.initial} animate={fadeAnimation.animate} exit={fadeAnimation.exit} className="absolute inset-0">
+                    <MotionDiv key="skeleton" initial={fadeAnimation.initial} animate={fadeAnimation.animate} exit={fadeAnimation.exit} className="absolute inset-0">
                         <PostSkeleton />
-                    </motion.div>
+                    </MotionDiv>
                 ) : contentVariations.length === 0 ? (
-                    <motion.div key="empty" initial={fadeAnimation.initial} animate={fadeAnimation.animate} exit={fadeAnimation.exit} className="absolute inset-0">
+                    <MotionDiv key="empty" initial={fadeAnimation.initial} animate={fadeAnimation.animate} exit={fadeAnimation.exit} className="absolute inset-0">
                          <EmptyState />
-                    </motion.div>
+                    </MotionDiv>
                 ) : (
-                    <motion.div key="content" initial={fadeAnimation.initial} animate={fadeAnimation.animate} exit={fadeAnimation.exit} className="space-y-4">
-                        <ActionBar 
+                    <MotionDiv key="content" initial={fadeAnimation.initial} animate={fadeAnimation.animate} exit={fadeAnimation.exit}>
+                         {currentPost && (
+                            <AnimatePresence mode="wait">
+                                <MotionDiv 
+                                    key={currentVariationIndex} 
+                                    initial={fadeAnimation.initial}
+                                    animate={fadeAnimation.animate}
+                                    exit={fadeAnimation.exit}
+                                >
+                                    {renderPost(currentPost)}
+                                </MotionDiv>
+                            </AnimatePresence>
+                        )}
+                         <ActionBar 
                             onPublish={onPublish}
                             onCopy={handleCopy}
                             onPrev={() => setCurrentVariationIndex(currentVariationIndex - 1)}
@@ -439,20 +489,15 @@ ${htmlBody}
                             currentIndex={currentVariationIndex}
                             totalVariations={contentVariations.length}
                             disabled={isLoading || !!isGeneratingImage || (currentPost && 'brandAlignmentStatus' in currentPost && currentPost.brandAlignmentStatus === 'loading')}
-                        />
-                        {currentPost && (
-                            <AnimatePresence mode="wait">
-                                <motion.div 
-                                    key={currentVariationIndex} 
-                                    initial={fadeAnimation.initial}
-                                    animate={fadeAnimation.animate}
-                                    exit={fadeAnimation.exit}
-                                >
-                                    {renderPost(currentPost)}
-                                </motion.div>
-                            </AnimatePresence>
-                        )}
-                    </motion.div>
+                        >
+                            {isBlogPost && (
+                                <a href={GIX_BLOG_URL} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded-lg transition-colors">
+                                    <ExternalLinkIcon className="h-4 w-4" />
+                                    View on GIX Blog
+                                </a>
+                            )}
+                        </ActionBar>
+                    </MotionDiv>
                 )}
             </AnimatePresence>
         </div>

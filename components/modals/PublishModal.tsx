@@ -1,84 +1,95 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import type { PublishModalProps } from '../../constants';
-import { MAKE_WEBHOOK_URL } from "../../constants";
+import type { PublishModalProps } from '../../types';
+import { MAKE_WEBHOOK_URL, GIX_BLOG_URL } from "../../constants";
 import { useFacebook } from "../../hooks/useFacebook";
 import { constructMakePayload, sendToMakeWebhook } from "../../services/makeService";
 import { Button } from "../ui/Button";
 import { Loader } from "../ui/Loader";
-import { FacebookIcon, MakeIcon, SendIcon, XIcon } from "../ui/icons";
+import { FacebookIcon, MakeIcon, SendIcon, XIcon, ExternalLinkIcon, CopyIcon, CheckIcon } from "../ui/icons";
 import { Tabs } from "../ui/Tabs";
 import { ManualTokenInfo } from "../ManualTokenInfo";
 import { PublishingControls } from "../PublishingControls";
+import { HttpsErrorExplanation } from "../ui/HttpsErrorExplanation";
+
+const MotionDiv = motion.div as any;
 
 // ------------------------------------------------------------
-// Utilities: timezone-safe date handling (default Asia/Dhaka)
+// Utilities
 // ------------------------------------------------------------
 const DEFAULT_TZ = "Asia/Dhaka";
 
 function getTodayLocalISODate(tz: string = DEFAULT_TZ) {
-  // Compute local-tz midnight ISO YYYY-MM-DD without time
   const now = new Date();
-  // shift to local midnight by constructing a date string
-  const tzDate = new Intl.DateTimeFormat("en-CA", {
-    timeZone: tz,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(now); // yyyy-mm-dd
+  const tzDate = new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
   return tzDate;
 }
 
-function combineLocalDateTimeToJSDate(dateStr: string, timeStr: string, tz: string = DEFAULT_TZ) {
-  // Build an ISO-like string using the provided local TZ, then convert to JS Date (UTC-based)
-  // yyyy-mm-ddTHH:mm → interpret as time in tz; convert to UTC Date
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: tz,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).formatToParts(new Date(`${dateStr}T${timeStr}:00`));
-  // Fallback: just return naive JS Date if formatter unsupported
-  const y = parts.find(p => p.type === "year")?.value ?? dateStr.slice(0,4);
-  const m = parts.find(p => p.type === "month")?.value ?? dateStr.slice(5,7);
-  const d = parts.find(p => p.type === "day")?.value ?? dateStr.slice(8,10);
-  const h = parts.find(p => p.type === "hour")?.value ?? timeStr.slice(0,2);
-  const min = parts.find(p => p.type === "minute")?.value ?? timeStr.slice(3,5);
-  // Create a Date by pretending the string is in tz, then adjusting by tz offset at that wall time.
-  const local = new Date(`${y}-${m}-${d}T${h}:${min}:00`);
-  // Compute offset between tz time and UTC at that moment
-  const tzOffsetMin = getTimezoneOffsetMinutes(tz, local);
-  return new Date(local.getTime() - tzOffsetMin * 60 * 1000);
+function combineLocalDateTimeToJSDate(dateStr: string, timeStr: string, tz: string = DEFAULT_TZ): Date {
+  const tempDate = new Date(`${dateStr}T${timeStr}:00`);
+  const targetOffsetMinutes = getTimezoneOffsetMinutes(tz, tempDate);
+  const offset = -targetOffsetMinutes;
+  const sign = offset >= 0 ? '+' : '-';
+  const offsetHours = String(Math.floor(Math.abs(offset) / 60)).padStart(2, '0');
+  const offsetMins = String(Math.abs(offset) % 60).padStart(2, '0');
+  const offsetString = `${sign}${offsetHours}:${offsetMins}`;
+  const isoString = `${dateStr}T${timeStr}:00${offsetString}`;
+  return new Date(isoString);
 }
 
 function getTimezoneOffsetMinutes(timeZone: string, at: Date) {
-  // Offset in minutes for given tz at the provided instant
-  const dtf = new Intl.DateTimeFormat("en-US", {
-    timeZone,
-    hourCycle: "h23",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
+  const dtf = new Intl.DateTimeFormat("en-US", { timeZone, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" });
   const parts = dtf.formatToParts(at);
   const map: Record<string,string> = Object.fromEntries(parts.map(p => [p.type, p.value]));
-  // Build a timestamp as if in UTC using the parts, then compare
-  const ts = Date.UTC(
-    Number(map.year),
-    Number(map.month) - 1,
-    Number(map.day),
-    Number(map.hour),
-    Number(map.minute),
-    Number(map.second)
-  );
-  return -(ts - at.getTime()) / 60000; // minutes
+  const ts = Date.UTC(Number(map.year), Number(map.month) - 1, Number(map.day), Number(map.hour), Number(map.minute), Number(map.second));
+  return -(ts - at.getTime()) / 60000;
 }
+
+const convertMarkdownToHtmlString = (markdown: string): string => {
+    let html = '';
+    const lines = markdown.split('\n');
+    let inList = false;
+
+    const flushList = () => {
+        if (inList) {
+            html += '</ul>\n';
+            inList = false;
+        }
+    };
+
+    lines.forEach(line => {
+        let processedLine = line.trim();
+        if (processedLine.startsWith('#### ')) {
+            flushList();
+            html += `<h4>${processedLine.substring(5)}</h4>\n`;
+        } else if (processedLine.startsWith('### ')) {
+            flushList();
+            html += `<h3>${processedLine.substring(4)}</h3>\n`;
+        } else if (processedLine.startsWith('## ')) {
+            flushList();
+            html += `<h2>${processedLine.substring(3)}</h2>\n`;
+        } else if (processedLine.startsWith('# ')) {
+            flushList();
+            html += `<h1>${processedLine.substring(2)}</h1>\n`;
+        } else if (processedLine.startsWith('* ')) {
+            if (!inList) {
+                html += '<ul>\n';
+                inList = true;
+            }
+            html += `  <li>${processedLine.substring(2).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</li>\n`;
+        } else if (processedLine === '---' || processedLine === '***') {
+            flushList();
+            html += '<hr />\n';
+        } else if (processedLine) {
+            flushList();
+            processedLine = processedLine.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            html += `<p>${processedLine}</p>\n`;
+        }
+    });
+    flushList();
+    return html;
+};
+
 
 // framer-motion presets
 const modalAnimation = {
@@ -109,19 +120,49 @@ const ModalContent: React.FC<PublishModalProps & { timeZone?: string }> = ({
   showToast,
   timeZone = DEFAULT_TZ,
 }) => {
-  // focus trap (minimal)
   const rootRef = useRef<HTMLDivElement | null>(null);
+
+  // Focus Trapping for Accessibility
   useEffect(() => {
-    if (!isOpen) return;
-    const prev = document.activeElement as HTMLElement | null;
-    rootRef.current?.focus();
-    return () => { prev?.focus() };
-  }, [isOpen]);
+    if (!isOpen || !rootRef.current) return;
+
+    const focusableElements = rootRef.current.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key !== 'Tab') return;
+        if (e.shiftKey) { // Shift+Tab
+            if (document.activeElement === firstElement) {
+                lastElement.focus();
+                e.preventDefault();
+            }
+        } else { // Tab
+            if (document.activeElement === lastElement) {
+                firstElement.focus();
+                e.preventDefault();
+            }
+        }
+    };
+
+    const prevActiveElement = document.activeElement as HTMLElement;
+    firstElement?.focus();
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+        document.removeEventListener('keydown', handleKeyDown);
+        prevActiveElement?.focus();
+    };
+}, [isOpen]);
 
   const [publishTarget, setPublishTarget] = useState<"make" | "facebook">("make");
   const [isScheduling, setIsScheduling] = useState(false);
   const [scheduleDate, setScheduleDate] = useState("");
   const [scheduleTime, setScheduleTime] = useState("");
+  const [isBlogHtmlCopied, setIsBlogHtmlCopied] = useState(false);
 
   const [makePublishStatus, setMakePublishStatus] = useState<"idle" | "publishing" | "success" | "error">("idle");
   const [fbPublishStatus, setFbPublishStatus] = useState<"idle" | "publishing" | "success" | "error">("idle");
@@ -180,9 +221,41 @@ const ModalContent: React.FC<PublishModalProps & { timeZone?: string }> = ({
       }, 1200);
     } catch (e) {
       setFbPublishStatus("error");
+      const message = e instanceof Error ? e.message : "An unknown error occurred during publishing.";
+      showToast(message, 'error');
       setTimeout(() => setFbPublishStatus("idle"), 2000);
     }
   }, [generatedContent, fb, finalizeDate, onClose, showToast]);
+
+  const handleCopyBlogHtml = useCallback(() => {
+        if (!generatedContent || (generatedContent.type !== 'blog' && (generatedContent.type !== 'seo_blog_post' || generatedContent.stage !== 'article'))) return;
+
+        const title = generatedContent.type === 'blog' ? generatedContent.title : generatedContent.selectedTitle || 'Untitled Post';
+        const body = generatedContent.body || '';
+
+        const htmlBody = convertMarkdownToHtmlString(body);
+
+        const fullHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; max-width: 800px; margin: 2rem auto; padding: 1rem; }
+        h1, h2, h3, h4 { line-height: 1.2; }
+    </style>
+</head>
+<body>
+    <h1>${title}</h1>
+    ${htmlBody}
+</body>
+</html>`;
+        navigator.clipboard.writeText(fullHtml);
+        setIsBlogHtmlCopied(true);
+        showToast('Full blog post HTML copied!', 'success');
+        setTimeout(() => setIsBlogHtmlCopied(false), 2000);
+    }, [generatedContent, showToast]);
 
   const getMakeButtonText = () => {
     if (makePublishStatus === "publishing") return isScheduling ? "Scheduling..." : "Publishing...";
@@ -200,15 +273,16 @@ const ModalContent: React.FC<PublishModalProps & { timeZone?: string }> = ({
 
   const isMakeButtonDisabled = makePublishStatus === "publishing" || schedulingInvalid;
   const isFacebookButtonDisabled = fb.isPublishing || !fb.selectedPage || fbPublishStatus === "publishing" || schedulingInvalid;
-  const showFacebookPublish = generatedContent?.type !== "strategy" && generatedContent?.type !== "video_generation" && generatedContent?.type !== "voice_dialog" && generatedContent?.type !== "prototype" && generatedContent?.type !== "seo_blog_post";
-  const postType = generatedContent?.type as string | undefined;
+  
+  const postType = generatedContent?.type;
+  const isBlogPost = postType === 'blog' || (postType === 'seo_blog_post' && generatedContent.stage === 'article');
 
   const makeNote = postType === "video"
     ? "Video posts will be published as text scripts."
     : postType === "strategy"
     ? "The full strategy plan (JSON) will be sent to your scenario."
     : postType === "video_generation"
-    ? "The video URL will be sent to your Make.com scenario."
+    ? "The generated video URL will be sent to your Make.com scenario."
     : postType === "voice_dialog"
     ? "The structured dialog will be sent to your Make.com scenario."
     : "Posts will be sent to your Make.com scenario.";
@@ -217,10 +291,15 @@ const ModalContent: React.FC<PublishModalProps & { timeZone?: string }> = ({
     ? "Connect to Facebook or provide an access token."
     : fb.pages.length === 0
     ? "No manageable Facebook Pages found."
+    : isBlogPost 
+    ? "Share a preview of your article to drive traffic from Facebook."
     : "Select a Page to publish or schedule your content.";
 
+  const showFacebookPublish = postType !== "strategy" && postType !== "video_generation" && postType !== "voice_dialog" && postType !== "prototype";
+
   return (
-    <motion.div
+    <MotionDiv
+      ref={rootRef}
       initial={modalAnimation.initial}
       animate={modalAnimation.animate}
       exit={modalAnimation.exit}
@@ -241,11 +320,28 @@ const ModalContent: React.FC<PublishModalProps & { timeZone?: string }> = ({
         </button>
       </div>
 
-      <div className="p-4 sm:p-6 space-y-4" ref={rootRef} tabIndex={-1}>
+      <div className="p-4 sm:p-6 space-y-4">
+        {isBlogPost && (
+            <div className="space-y-3 p-4 bg-blue-500/10 dark:bg-blue-900/20 border border-blue-200/50 dark:border-blue-700/50 rounded-lg">
+                <h4 className="font-semibold text-sm text-blue-800 dark:text-blue-300">Blog Publishing Workflow</h4>
+                <p className="text-xs text-blue-700 dark:text-blue-300/80">Copy the full HTML and paste it into your blog editor, then share a preview to Facebook to drive traffic.</p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                    <Button onClick={handleCopyBlogHtml} variant="secondary" className="w-full !py-2 !text-sm">
+                        {isBlogHtmlCopied ? <><CheckIcon/> Copied</> : <><CopyIcon/> Copy Full HTML for Blog</>}
+                    </Button>
+                    <a href={GIX_BLOG_URL} target="_blank" rel="noopener noreferrer" className="w-full">
+                        <Button variant="secondary" className="w-full !py-2 !text-sm">
+                            <ExternalLinkIcon className="h-4 w-4"/> Open GIX Blog
+                        </Button>
+                    </a>
+                </div>
+            </div>
+        )}
+        
         <Tabs
           options={[
             { value: "make", label: "Publish via Make", icon: <MakeIcon /> },
-            { value: "facebook", label: "Publish to Facebook", icon: <FacebookIcon /> },
+            { value: "facebook", label: `Publish to Facebook${isBlogPost ? ' (Preview)' : ''}`, icon: <FacebookIcon /> },
           ]}
           active={publishTarget}
           onSelect={(val) => setPublishTarget(val as "make" | "facebook")}
@@ -276,7 +372,7 @@ const ModalContent: React.FC<PublishModalProps & { timeZone?: string }> = ({
 
         <AnimatePresence initial={false}>
           {isScheduling && (
-            <motion.div
+            <MotionDiv
               initial={scheduleAnimation.initial}
               animate={scheduleAnimation.animate}
               className="grid grid-cols-1 sm:grid-cols-2 gap-4"
@@ -307,13 +403,13 @@ const ModalContent: React.FC<PublishModalProps & { timeZone?: string }> = ({
                 />
                 <p className="mt-1 text-xs text-gray-500">Timezone: {timeZone}</p>
               </div>
-            </motion.div>
+            </MotionDiv>
           )}
         </AnimatePresence>
 
         <AnimatePresence mode="wait">
           {publishTarget === "make" ? (
-            <motion.div
+            <MotionDiv
               key="make"
               initial={targetAnimation.initial}
               animate={targetAnimation.animate}
@@ -336,9 +432,9 @@ const ModalContent: React.FC<PublishModalProps & { timeZone?: string }> = ({
                 {makePublishStatus === "publishing" ? <Loader text={getMakeButtonText()} /> : <SendIcon />}
                 {getMakeButtonText()}
               </Button>
-            </motion.div>
+            </MotionDiv>
           ) : (
-            <motion.div
+            <MotionDiv
               key="facebook"
               initial={targetAnimation.initial}
               animate={targetAnimation.animate}
@@ -346,26 +442,16 @@ const ModalContent: React.FC<PublishModalProps & { timeZone?: string }> = ({
               className="space-y-3 pt-2"
             >
               {!showFacebookPublish ? (
-                generatedContent?.type === "strategy" ? (
-                  <p className="text-sm text-center text-yellow-700 dark:text-yellow-300 bg-yellow-500/10 p-3 rounded-md">
-                    Strategy plans cannot be published directly to Facebook and must be copied.
-                  </p>
-                ) : generatedContent?.type === "voice_dialog" ? (
-                  <p className="text-sm text-center text-yellow-700 dark:text-yellow-300 bg-yellow-500/10 p-3 rounded-md">
-                    Voice dialogs cannot be published directly to Facebook.
-                  </p>
-                ) : (
-                  <p className="text-sm text-center text-yellow-700 dark:text-yellow-300 bg-yellow-500/10 p-3 rounded-md">
-                    Generated videos must be downloaded and published to Facebook manually.
-                  </p>
-                )
+                <p className="text-sm text-center text-yellow-700 dark:text-yellow-300 bg-yellow-500/10 p-3 rounded-md">
+                    This content type cannot be directly published to Facebook. Please use the Make.com workflow.
+                </p>
               ) : (
                 <>
                   <p className="text-xs text-gray-500 dark:text-gray-400 italic text-center">{facebookNote}</p>
                   {!fb.isLoggedIn ? (
                     <div className="space-y-3">
                       {isHttpsError ? (
-                        <p className="text-xs text-red-600 dark:text-red-400 text-center p-2 bg-red-500/10 rounded-md">{fb.loginError}</p>
+                        <HttpsErrorExplanation />
                       ) : (
                         <>
                           <Button onClick={fb.login} disabled={!fb.isSdkLoaded} className="w-full !bg-blue-800 hover:!bg-blue-900">
@@ -407,11 +493,11 @@ const ModalContent: React.FC<PublishModalProps & { timeZone?: string }> = ({
                   )}
                 </>
               )}
-            </motion.div>
+            </MotionDiv>
           )}
         </AnimatePresence>
       </div>
-    </motion.div>
+    </MotionDiv>
   );
 };
 

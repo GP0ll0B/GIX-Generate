@@ -1,7 +1,5 @@
-
-
 import React, { useState } from 'react';
-import { GeneratedContent } from '../constants';
+import { GeneratedContent } from '../types';
 import { BrandReviewPanel } from './BrandReviewPanel';
 import { Button } from './ui/Button';
 import { LightningBoltIcon, CopyIcon, CheckIcon } from './ui/icons';

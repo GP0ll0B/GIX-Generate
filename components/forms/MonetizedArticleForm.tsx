@@ -1,5 +1,5 @@
 import React from 'react';
-import { MonetizedArticleCampaignInput } from '../../constants';
+import { MonetizedArticleCampaignInput } from '../../types';
 
 interface MonetizedArticleFormProps {
     input: MonetizedArticleCampaignInput;

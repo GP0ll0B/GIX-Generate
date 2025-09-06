@@ -1,5 +1,5 @@
 import React from 'react';
-import { GeneratedContent } from '../constants';
+import { GeneratedContent } from '../types';
 import { PostHeader } from './PostHeader';
 import { PlatformDetails } from './PlatformDetails';
 import { MicrophoneIcon } from './ui/icons';

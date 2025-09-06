@@ -1,10 +1,10 @@
 import React from 'react';
-import { PostType, GuidedPostInput, AdCreativeInput, VoiceDialogInput, GoogleBusinessPostInput, ModelType, AllianceAdInput, AmpPrototypeInput, MonetizedArticleCampaignInput, SeoBlogInput, GeneratedContent } from '../../constants';
+import { PostType, GuidedPostInput, AdCreativeInput, VoiceDialogInput, GoogleBusinessPostInput, ModelType, AllianceAdInput, AmpPrototypeInput, MonetizedArticleCampaignInput, SeoBlogInput, GeneratedContent, EmailSubjectInput, EmailBodyInput, EngagementBoosterInput, BrandVoiceInput, AutomatedResponderInput, TaskType, PostEngagementStrategistInput } from '../../types';
 import { Button } from '../ui/Button';
 import { Loader } from '../ui/Loader';
 import { TopicForm } from '../forms/TopicForm';
 import { GuidedPostForm } from '../forms/GuidedPostForm';
-import { AdCreativeForm } from '../forms/AdCreativeForm';
+import { AdCreativeForm } from '../AdCreativeForm';
 import { AnalysisForm } from '../forms/AnalysisForm';
 import { VoiceDialogForm } from '../forms/VoiceDialogForm';
 import { GoogleBusinessPostForm } from '../forms/GoogleBusinessPostForm';
@@ -12,6 +12,11 @@ import { AllianceAdForm } from '../forms/AllianceAdForm';
 import { AmpPrototypeForm } from '../forms/AmpPrototypeForm';
 import { MonetizedArticleForm } from '../forms/MonetizedArticleForm';
 import { SeoBlogForm } from '../forms/SeoBlogForm';
+import { EmailSubjectForm } from '../forms/EmailSubjectForm';
+import { EmailBodyForm } from '../forms/EmailBodyForm';
+import { Tabs } from '../ui/Tabs';
+import { SparklesIcon, CubeIcon } from '../ui/icons';
+import { AutomatedResponderForm } from '../forms/AutomatedResponderForm';
 
 interface ControlPanelProps {
   postType: PostType;
@@ -36,8 +41,22 @@ interface ControlPanelProps {
   setSeoBlogInput: React.Dispatch<React.SetStateAction<SeoBlogInput>>;
   voiceDialogInput: VoiceDialogInput;
   setVoiceDialogInput: React.Dispatch<React.SetStateAction<VoiceDialogInput>>;
-  videoInputImage: { data: string; type: string; } | null;
-  setVideoInputImage: (image: { data: string; type: string; } | null) => void;
+  emailSubjectInput: EmailSubjectInput;
+  setEmailSubjectInput: React.Dispatch<React.SetStateAction<EmailSubjectInput>>;
+  emailBodyInput: EmailBodyInput;
+  setEmailBodyInput: React.Dispatch<React.SetStateAction<EmailBodyInput>>;
+  engagementBoosterInput: EngagementBoosterInput;
+  setEngagementBoosterInput: React.Dispatch<React.SetStateAction<EngagementBoosterInput>>;
+  brandVoiceInput: BrandVoiceInput;
+  setBrandVoiceInput: React.Dispatch<React.SetStateAction<BrandVoiceInput>>;
+  automatedResponderInput: AutomatedResponderInput;
+  setAutomatedResponderInput: React.Dispatch<React.SetStateAction<AutomatedResponderInput>>;
+  postEngagementStrategistInput: PostEngagementStrategistInput;
+  setPostEngagementStrategistInput: React.Dispatch<React.SetStateAction<PostEngagementStrategistInput>>;
+  inputImage: { data: string; type: string; } | null;
+  setInputImage: (image: { data: string; type: string; } | null) => void;
+  isUploadingImage: boolean;
+  setIsUploadingImage: (loading: boolean) => void;
   numVariations: number;
   setNumVariations: (n: number) => void;
   temperature: number;
@@ -48,11 +67,15 @@ interface ControlPanelProps {
   model: ModelType;
   setModel: (model: ModelType) => void;
   currentPost: GeneratedContent | null;
+  autoLinkKeywords: boolean;
+  setAutoLinkKeywords: (enabled: boolean) => void;
+  task: TaskType;
+  setTask: (task: TaskType) => void;
 }
 
-const PostTypeSpecificForm: React.FC<Pick<ControlPanelProps, 'postType' | 'topic' | 'setTopic' | 'url' | 'setUrl' | 'guidedInput' | 'setGuidedInput' | 'adCreativeInput' | 'setAdCreativeInput' | 'allianceAdInput' | 'setAllianceAdInput' | 'voiceDialogInput' | 'setVoiceDialogInput' | 'videoInputImage' | 'setVideoInputImage' | 'googleBusinessPostInput' | 'setGoogleBusinessPostInput' | 'ampPrototypeInput' | 'setAmpPrototypeInput' | 'monetizedArticleInput' | 'setMonetizedArticleInput' | 'seoBlogInput' | 'setSeoBlogInput'>> = ({
-  postType, topic, setTopic, url, setUrl, guidedInput, setGuidedInput, adCreativeInput, setAdCreativeInput, allianceAdInput, setAllianceAdInput, voiceDialogInput, setVoiceDialogInput, videoInputImage, setVideoInputImage, googleBusinessPostInput, setGoogleBusinessPostInput, ampPrototypeInput, setAmpPrototypeInput, monetizedArticleInput, setMonetizedArticleInput, seoBlogInput, setSeoBlogInput
-}) => {
+const PostTypeSpecificForm: React.FC<Omit<ControlPanelProps, 'onGenerate' | 'isLoading' | 'error' | 'numVariations' | 'setNumVariations' | 'temperature' | 'setTemperature' | 'model' | 'setModel' | 'onTabSelect' | 'currentPost'>> = (props) => {
+  const { postType } = props;
+  
   switch (postType) {
     case 'text':
     case 'grounded_text':
@@ -60,95 +83,144 @@ const PostTypeSpecificForm: React.FC<Pick<ControlPanelProps, 'postType' | 'topic
     case 'video':
     case 'video_generation':
     case 'blog':
-      return <TopicForm topic={topic} setTopic={setTopic} postType={postType} videoInputImage={videoInputImage} setVideoInputImage={setVideoInputImage} />;
+    case 'post_engagement_strategist':
+        return <TopicForm
+          postType={postType}
+          topic={props.topic}
+          setTopic={props.setTopic}
+          inputImage={props.inputImage}
+          setInputImage={props.setInputImage}
+          isUploadingImage={props.isUploadingImage}
+          setIsUploadingImage={props.setIsUploadingImage}
+          autoLinkKeywords={props.autoLinkKeywords}
+          setAutoLinkKeywords={props.setAutoLinkKeywords}
+          task={props.task}
+          setTask={props.setTask}
+        />;
     case 'guided':
-      return <GuidedPostForm guidedInput={guidedInput} setGuidedInput={setGuidedInput} />;
+        return <GuidedPostForm guidedInput={props.guidedInput} setGuidedInput={props.setGuidedInput} />;
     case 'ad':
-      return <AdCreativeForm adCreativeInput={adCreativeInput} setAdCreativeInput={setAdCreativeInput} />;
-    case 'alliance_ad':
-      return <AllianceAdForm allianceAdInput={allianceAdInput} setAllianceAdInput={setAllianceAdInput} />;
+        return <AdCreativeForm adCreativeInput={props.adCreativeInput} setAdCreativeInput={props.setAdCreativeInput} />;
+     case 'alliance_ad':
+        return <AllianceAdForm allianceAdInput={props.allianceAdInput} setAllianceAdInput={props.setAllianceAdInput} />;
     case 'analysis':
-      return <AnalysisForm url={url} setUrl={setUrl} topic={topic} setTopic={setTopic} />;
+        return <AnalysisForm url={props.url} setUrl={props.setUrl} topic={props.topic} setTopic={props.setTopic} />;
     case 'voice_dialog':
-        return <VoiceDialogForm voiceDialogInput={voiceDialogInput} setVoiceDialogInput={setVoiceDialogInput} />
+        return <VoiceDialogForm voiceDialogInput={props.voiceDialogInput} setVoiceDialogInput={props.setVoiceDialogInput} />;
     case 'google_business_post':
-        return <GoogleBusinessPostForm input={googleBusinessPostInput} setInput={setGoogleBusinessPostInput} />
+        return <GoogleBusinessPostForm input={props.googleBusinessPostInput} setInput={props.setGoogleBusinessPostInput} />;
     case 'prototype':
-        return <AmpPrototypeForm input={ampPrototypeInput} setInput={setAmpPrototypeInput} />;
+        return <AmpPrototypeForm input={props.ampPrototypeInput} setInput={props.setAmpPrototypeInput} />;
     case 'monetized_article_campaign':
-        return <MonetizedArticleForm input={monetizedArticleInput} setInput={setMonetizedArticleInput} />;
+        return <MonetizedArticleForm input={props.monetizedArticleInput} setInput={props.setMonetizedArticleInput} />;
     case 'seo_blog_post':
-        return <SeoBlogForm input={seoBlogInput} setInput={setSeoBlogInput} />;
+        return <SeoBlogForm input={props.seoBlogInput} setInput={props.setSeoBlogInput} autoLinkKeywords={props.autoLinkKeywords} setAutoLinkKeywords={props.setAutoLinkKeywords} />;
+    case 'email_subject':
+        return <EmailSubjectForm input={props.emailSubjectInput} setInput={props.setEmailSubjectInput} />;
+    case 'email_body':
+        return <EmailBodyForm input={props.emailBodyInput} setInput={props.setEmailBodyInput} />;
+    case 'automated_responder':
+        return <AutomatedResponderForm input={props.automatedResponderInput} setInput={props.setAutomatedResponderInput} />;
     default:
-      return null;
+      return (
+        <div className="text-center text-gray-500 dark:text-gray-400 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+          Select a post type to begin.
+        </div>
+      );
   }
 };
 
+const ModelConfigPanel: React.FC<Pick<ControlPanelProps, 'numVariations' | 'setNumVariations' | 'temperature' | 'setTemperature' | 'model' | 'setModel' | 'postType'>> = 
+  ({ numVariations, setNumVariations, temperature, setTemperature, model, setModel, postType }) => {
+
+  const showNumVariations = !['comment_analysis', 'seo_blog_post', 'automated_responder'].includes(postType);
+
+  return (
+    <div className="space-y-4">
+       <div>
+            <label className="font-semibold text-gray-800 dark:text-gray-200">Model</label>
+            <Tabs
+                options={[
+                    { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash', icon: <SparklesIcon className="h-4 w-4" /> },
+                    { value: 'aiko-360m-instruct', label: 'Aiko360-Instruct', icon: <CubeIcon className="h-4 w-4" /> }
+                ]}
+                active={model}
+                onSelect={(val) => setModel(val as ModelType)}
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                {model === 'aiko-360m-instruct' 
+                    ? "A small, efficient on-device model for quick, standard tasks. (Simulated)" 
+                    : "A powerful, state-of-the-art cloud model for complex and creative tasks."}
+            </p>
+        </div>
+       {showNumVariations && (
+        <div>
+            <label htmlFor="numVariations" className="font-semibold text-gray-800 dark:text-gray-200">
+                Number of Variations
+            </label>
+            <input
+                id="numVariations"
+                type="number"
+                value={numVariations}
+                onChange={(e) => setNumVariations(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                className="w-full mt-1 p-3 border border-gray-300/50 dark:border-gray-600/50 rounded-lg bg-white/50 dark:bg-gray-700/50 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+                min="1"
+                max="5"
+            />
+        </div>
+      )}
+      <div>
+        <label htmlFor="temperature" className="font-semibold text-gray-800 dark:text-gray-200">
+            Creativity Level (Temperature: {temperature.toFixed(1)})
+        </label>
+        <input
+            id="temperature"
+            type="range"
+            value={temperature}
+            onChange={(e) => setTemperature(parseFloat(e.target.value))}
+            className="w-full mt-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer"
+            min="0.1"
+            max="1.0"
+            step="0.1"
+        />
+      </div>
+    </div>
+  );
+}
+
+
 export const ControlPanel: React.FC<ControlPanelProps> = (props) => {
-    const { onGenerate, isLoading, error, numVariations, setNumVariations, temperature, setTemperature, model, setModel } = props;
-
     return (
-        <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl p-4 sm:p-6 rounded-xl shadow-lg border border-white/20 dark:border-white/10 space-y-6 self-start lg:sticky lg:top-8">
-            <div>
-                <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200">Generation Settings</h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Configure the inputs for the AI content generator.</p>
+        <div className="space-y-6">
+            <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl p-4 sm:p-6 rounded-xl shadow-lg border border-white/20 dark:border-white/10">
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">Content Generator</h2>
+                <PostTypeSpecificForm {...props} />
             </div>
 
-            <PostTypeSpecificForm {...props} />
-
-            <div className="border-t border-gray-200/50 dark:border-gray-600/50 pt-6 space-y-4">
-                <h3 className="font-semibold text-gray-800 dark:text-gray-200">Model Parameters</h3>
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label htmlFor="variations" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Variations</label>
-                        <input
-                            type="number"
-                            id="variations"
-                            value={numVariations}
-                            onChange={(e) => setNumVariations(Math.max(1, parseInt(e.target.value) || 1))}
-                            min="1"
-                            max="5"
-                            className="w-full mt-1 p-2 border border-gray-300/50 dark:border-gray-600/50 rounded-lg bg-white/50 dark:bg-gray-700/50 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
-                        />
-                    </div>
-                    <div>
-                         <label htmlFor="model-select" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Model</label>
-                        <select
-                            id="model-select"
-                            value={model}
-                            onChange={(e) => setModel(e.target.value as ModelType)}
-                            className="w-full mt-1 p-2 border border-gray-300/50 dark:border-gray-600/50 rounded-lg bg-white/50 dark:bg-gray-700/50 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
-                        >
-                            <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
-                            <option value="aiko-360m-instruct">Aiko360-Instruct (Simulated)</option>
-                        </select>
-                    </div>
-                </div>
-                <div>
-                    <label htmlFor="temperature" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Creativity (Temperature): {temperature}
-                    </label>
-                    <input
-                        type="range"
-                        id="temperature"
-                        min="0"
-                        max="1"
-                        step="0.1"
-                        value={temperature}
-                        onChange={(e) => setTemperature(parseFloat(e.target.value))}
-                        className="w-full mt-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
-                    />
-                </div>
+            <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl p-4 sm:p-6 rounded-xl shadow-lg border border-white/20 dark:border-white/10">
+                <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">Model Configuration</h2>
+                 <ModelConfigPanel {...props} />
             </div>
 
-            <Button onClick={onGenerate} disabled={isLoading} className="w-full">
-                {isLoading ? <Loader text="Generating..." /> : 'Generate'}
-            </Button>
-            {error && !isLoading && (
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-300 px-3 py-2 rounded-md text-sm" role="alert">
-                    <p><span className="font-bold">Error:</span> {error}</p>
-                </div>
-            )}
+            <div className="sticky bottom-0 py-4 bg-gray-50/80 dark:bg-gray-900/80 backdrop-blur-lg -mx-8 px-8">
+                <Button 
+                    onClick={props.onGenerate} 
+                    disabled={props.isLoading || (props.postType === 'analysis' && (!props.url || !props.topic)) || (props.postType === 'text' && props.task === 'Visual Q&A' && !props.inputImage)}
+                    className="w-full text-lg"
+                >
+                    {props.isLoading ? <Loader text="Generating..." /> : 'Generate'}
+                </Button>
+                {props.error && !props.isLoading && (
+                    <div className="mt-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-300 px-3 py-2 rounded-md text-sm" role="alert">
+                        <p><span className="font-bold">Error:</span> {props.error}</p>
+                    </div>
+                )}
+                 {props.currentPost?.type === 'video_generation' && props.currentPost.status === 'generating' && (
+                    <div className="mt-4 text-center text-sm text-blue-600 dark:text-blue-400">
+                        <Loader text={props.currentPost.pollingMessage} />
+                    </div>
+                 )}
+            </div>
         </div>
     );
 };

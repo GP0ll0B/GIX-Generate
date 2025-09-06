@@ -1,6 +1,6 @@
 import React from 'react';
-import { AI_DATA_PROVENANCE_DATA } from '../constants';
-import { DocumentSearchIcon, CheckCircleIcon, UsersIcon, CubeIcon, HandshakeIcon, LockIcon } from './ui/icons';
+import { AI_DATA_PROVENANCE_DATA } from '../appData';
+import { DocumentSearchIcon, CheckCircleIcon, UsersIcon, CubeIcon, HandshakeIcon, LockIcon, GridIcon } from './ui/icons';
 import { RadialProgress } from './ui/RadialProgress';
 
 // Helper to format keys from camelCase or gix:prefixed to Title Case
@@ -61,7 +61,7 @@ const ComplianceCard: React.FC<{ assessment: any }> = ({ assessment }) => (
 
 
 export const AIDataProvenanceView: React.FC = () => {
-    const data = AI_DATA_PROVENANCE_DATA.AIDataInteractionRecord;
+    const data = AI_DATA_PROVENANCE_DATA.AIDataInteractionRecord as any;
 
     return (
         <div className="max-w-4xl mx-auto animate-fade-in-fast">
@@ -80,6 +80,12 @@ export const AIDataProvenanceView: React.FC = () => {
                     <Section title="Human User" icon={<UsersIcon />}>
                         <Detail label="User Handle">{data['gix:humanUser']['gix:userHandle']}</Detail>
                         <Detail label="User Role">{data['gix:humanUser']['gix:userRole']}</Detail>
+                    </Section>
+
+                    <Section title="Project Details" icon={<GridIcon />}>
+                         <Detail label="Project Name">{data['gix:projectDetails']['gix:projectName']}</Detail>
+                         <Detail label="Project ID">{data['gix:projectDetails']['gix:projectId']}</Detail>
+                         <Detail label="Project Number">{data['gix:projectDetails']['gix:projectNumber']}</Detail>
                     </Section>
 
                     <Section title="AI Model" icon={<CubeIcon />}>

@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { UseCase, USE_CASES, FilterCategory } from '../../constants';
+import { UseCase, FilterCategory } from '../../types';
+import { USE_CASES } from '../../appData';
 import { UseCaseCard } from '../ui/UseCaseCard';
 import { 
     DocumentTextIcon, MegaphoneIcon, VideoCameraIcon, 
-    LightBulbIcon, FileJsonIcon, ChartBarIcon, 
+    LightBulbIcon, FileJsonIcon, ChartBarIcon, SparklesIcon,
     GridIcon, CubeIcon, WorkflowIcon, ChatBubbleIcon, UsersIcon, BuildingStorefrontIcon, LockIcon, MicrophoneIcon, HandshakeIcon, LightningBoltIcon, DocumentDollarIcon, DocumentSearchIcon, QuestionMarkCircleIcon, DocumentCheckIcon 
 } from '../ui/icons';
 
-const MotionDiv = motion.div;
+const MotionDiv = motion.div as any;
 
 interface UseCaseSelectionProps {
     onSelectUseCase: (useCase: UseCase) => void;
@@ -35,6 +36,7 @@ const getIconForUseCase = (id: string): React.ReactNode => {
     if (id.includes('crypto')) return <LockIcon />;
     if (id.includes('ai-data-provenance')) return <DocumentSearchIcon />;
     if (id.includes('ethical-protocol')) return <DocumentCheckIcon />;
+    if (id.includes('predictive-engine')) return <SparklesIcon className="h-6 w-6" />;
     return <DocumentTextIcon />;
 };
 

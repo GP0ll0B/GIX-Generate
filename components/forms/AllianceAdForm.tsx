@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AllianceAdInput, AdCreativeInput } from '../../constants';
+import { AllianceAdInput, AdCreativeInput } from '../../types';
 import { Button } from '../ui/Button';
 import { LockIcon } from '../ui/icons';
 
-const MotionDiv = motion.div;
+const MotionDiv = motion.div as any;
 
 interface AllianceAdFormProps {
     allianceAdInput: AllianceAdInput;

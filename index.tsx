@@ -1,7 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { FacebookProvider } from './hooks/useFacebook';
-import App from './App';
+import { App } from './App';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -11,8 +12,10 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <FacebookProvider>
-      <App />
-    </FacebookProvider>
+    <ErrorBoundary>
+      <FacebookProvider>
+        <App />
+      </FacebookProvider>
+    </ErrorBoundary>
   </React.StrictMode>
 );

@@ -1,5 +1,5 @@
 import React from 'react';
-import { PRIMARY_AVATAR_URL } from '../constants';
+import { PRIMARY_AVATAR_URL, GIX_BLOG_URL } from '../constants';
 
 interface PostHeaderProps {
   variant?: 'default' | 'video';
@@ -27,7 +27,9 @@ export const PostHeader: React.FC<PostHeaderProps> = ({ variant = 'default' }) =
             />
             <div>
                 <p className={isVideo ? "font-bold text-white" : "font-bold text-gray-800 dark:text-gray-100"}>{userName}</p>
-                <p className={isVideo ? "text-xs text-gray-200" : "text-xs text-gray-500 dark:text-gray-400"}>GIX · Science & Tech · Just now · 🌐</p>
+                <p className={isVideo ? "text-xs text-gray-200" : "text-xs text-gray-500 dark:text-gray-400"}>
+                    <a href={GIX_BLOG_URL} target="_blank" rel="noopener noreferrer" className="hover:underline font-semibold text-blue-600 dark:text-blue-400">gix-ai.blogspot.com</a> · Just now · 🌐
+                </p>
             </div>
         </div>
     );

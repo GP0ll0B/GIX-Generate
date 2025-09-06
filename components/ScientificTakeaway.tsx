@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ChevronDownIcon, SparklesIcon } from './ui/icons';
 
@@ -49,8 +48,8 @@ export const ScientificTakeaway: React.FC = () => {
                     Vertex AI Search represents a convergent system where:
                 </p>
                 <Equation />
-                <p>
-                    In G|I|X terms, this is the mathematical dawn of grounded AI—an ethical-technical fusion where hallucination approaches zero and trust approaches infinity.
+                <p className="text-sm text-center font-semibold text-gray-500 dark:text-gray-400 bg-black/5 dark:bg-white/5 p-4 rounded-lg border border-gray-200/50 dark:border-gray-700/50">
+                    "The AI's observed adherence to its core ethical principles (<i className="font-mono text-orange-600 dark:text-orange-400">&Phi;'</i>) gets closer and closer to perfect (<span className="font-mono text-cyan-600 dark:text-cyan-400">1</span>) as the rigor and comprehensiveness of its verification and validation processes (<i className="font-mono text-fuchsia-600 dark:text-fuchsia-400">V</i>) increase."
                 </p>
                 <div className="mt-4 pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
                     <h4 className="font-semibold text-gray-700 dark:text-gray-300 text-center mb-3">Core Axioms</h4>

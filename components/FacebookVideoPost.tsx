@@ -1,7 +1,5 @@
-
-
 import React from 'react';
-import { GeneratedContent, SIGNATURE_HTML_FOR_VIDEO_POST } from '../constants';
+import { GeneratedContent } from '../types';
 import { Hashtags } from './Hashtags';
 import { PlatformDetails } from './PlatformDetails';
 import { PostHeader } from './PostHeader';
@@ -38,7 +36,7 @@ export const FacebookVideoPost: React.FC<FacebookVideoPostProps> = ({ post, onRe
               />
           </div>
           <div className="self-start">
-            <SignatureBlock html={SIGNATURE_HTML_FOR_VIDEO_POST} />
+            <SignatureBlock variant="video" />
           </div>
         </div>
       </div>

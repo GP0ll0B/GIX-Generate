@@ -1,7 +1,5 @@
-
-
 import React from 'react';
-import { GeneratedContent, SIGNATURE_HTML_FOR_TEXT_POST } from '../constants';
+import { GeneratedContent } from '../types';
 import { Hashtags } from './Hashtags';
 import { PlatformDetails } from './PlatformDetails';
 import { PostHeader } from './PostHeader';
@@ -36,7 +34,7 @@ export const FacebookGuidedPost: React.FC<FacebookGuidedPostProps> = ({ post, on
           {post.content}
         </div>
         <Hashtags hashtags={post.hashtags} />
-        <SignatureBlock html={SIGNATURE_HTML_FOR_TEXT_POST} />
+        <SignatureBlock variant="text" />
       </div>
       <BrandReviewPanel post={post} onReview={onReview} />
       <PlatformDetails />

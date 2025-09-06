@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { MONETIZATION_TOOLS_DATA, PAYOUT_DATA, MonetizationTool } from '../constants';
+import { MonetizationTool, Payout } from '../types';
+import { MONETIZATION_TOOLS_DATA, PAYOUT_DATA } from '../appData';
 import { 
     ArrowLeftIcon, ChartPieIcon, StarIcon, PlayIcon, UsersIcon, AwardIcon, CheckCircleIcon, ClockIcon 
 } from './ui/icons';

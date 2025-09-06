@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { GuidedPostInput } from '../../constants';
+import { GuidedPostInput } from '../../types';
 
 interface GuidedPostFormProps {
     guidedInput: GuidedPostInput;

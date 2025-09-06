@@ -1,5 +1,5 @@
 import React from 'react';
-import { UseCase } from '../../constants';
+import { UseCase } from '../../types';
 
 interface UseCaseCardProps {
     useCase: UseCase;

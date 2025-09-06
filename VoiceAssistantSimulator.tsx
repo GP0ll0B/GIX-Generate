@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { GoogleGenAI, Chat } from "@google/genai";
-import { ChatMessage, STELLA_LIVE_SYSTEM_INSTRUCTION, STELLA_NLU_SYSTEM_INSTRUCTION, STELLA_NLU_SCHEMA } from './constants';
+import { ChatMessage } from './types';
+import { STELLA_LIVE_SYSTEM_INSTRUCTION, STELLA_NLU_SYSTEM_INSTRUCTION } from './prompts';
+import { STELLA_NLU_SCHEMA } from './schemas';
 import { MicrophoneIcon } from './components/ui/icons';
 import { StellaDiagnosticsPanel } from './components/StellaDiagnosticsPanel';
 
-const MotionDiv = motion.div;
+const MotionDiv = motion.div as any;
 
 // Added 'initializing' and 'uninitialized' states for clarity
 type AssistantState = 'uninitialized' | 'initializing' | 'idle' | 'listening' | 'thinking' | 'speaking' | 'error' | 'unsupported' | 'permission_denied';

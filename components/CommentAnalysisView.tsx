@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { CommentAnalysisData } from '../constants';
+import { CommentAnalysisData } from '../types';
 import { Button } from './ui/Button';
 import { Loader } from './ui/Loader';
 import { SparklesIcon, ErrorIcon, LightBulbIcon, ChatBubbleIcon, MegaphoneIcon } from './ui/icons';

@@ -1,12 +1,9 @@
-
-
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-    PROFESSIONAL_DASHBOARD_DATA, ProDashboardTool, PostType,
-    INSPIRATION_HUB_SYSTEM_INSTRUCTION, INSPIRATION_HUB_SCHEMA, InspirationData,
-    TrendingTopic, TopHashtag, ViralFormat,
-} from '../constants';
+import { ProDashboardTool, PostType, InspirationData, TrendingTopic, TopHashtag, ViralFormat } from '../types';
+import { PROFESSIONAL_DASHBOARD_DATA } from '../appData';
+import { INSPIRATION_HUB_SYSTEM_INSTRUCTION } from '../prompts';
+import { INSPIRATION_HUB_SCHEMA } from '../schemas';
 import { generateContent } from '../services/geminiService';
 import { Tabs } from './ui/Tabs';
 import {
@@ -127,11 +124,15 @@ const ProfessionalDashboard: React.FC<ProfessionalDashboardProps> = ({ onSelectI
         setInspirationError(null);
         setInspirationData(null);
         try {
-            const response = await generateContent('gemini-2.5-flash', 'Generate content inspiration for a Science & Tech brand.', {
-                systemInstruction: INSPIRATION_HUB_SYSTEM_INSTRUCTION,
-                responseMimeType: 'application/json',
-                responseSchema: INSPIRATION_HUB_SCHEMA,
-                temperature: 0.8
+            const response = await generateContent({
+                model: 'gemini-2.5-flash',
+                contents: 'Generate content inspiration for a Science & Tech brand.',
+                config: {
+                    systemInstruction: INSPIRATION_HUB_SYSTEM_INSTRUCTION,
+                    responseMimeType: 'application/json',
+                    responseSchema: INSPIRATION_HUB_SCHEMA,
+                    temperature: 0.8
+                }
             });
             
             const jsonText = response.text.trim();

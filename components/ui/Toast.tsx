@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ToastData } from '../../constants';
+import { ToastData } from '../../types';
 import { CloseIcon, ErrorIcon, SuccessIcon } from './icons';
 
 interface ToastProps extends ToastData {

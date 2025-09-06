@@ -1,5 +1,5 @@
 import React from 'react';
-import { ALL_TOOLS_DATA } from '../constants';
+import { ALL_TOOLS_DATA } from '../appData';
 import { ExternalLinkIcon } from './ui/icons';
 
 const AllToolsView: React.FC = () => {

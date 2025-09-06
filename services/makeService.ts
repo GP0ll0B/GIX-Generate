@@ -1,4 +1,11 @@
-import { GeneratedContent, MakePostPayload, StrategyData } from '../constants';
+import { GeneratedContent, MakePostPayload, StrategyData } from '../types';
+
+const extractBase64FromDataUrl = (dataUrl: string | null | undefined): string | undefined => {
+    if (dataUrl?.startsWith('data:image/jpeg;base64,')) {
+        return dataUrl.split(',')[1];
+    }
+    return undefined;
+};
 
 export const constructMakePayload = (content: GeneratedContent, scheduleTime: Date | null): MakePostPayload => {
     let caption = '';
@@ -6,13 +13,17 @@ export const constructMakePayload = (content: GeneratedContent, scheduleTime: Da
     let hashtags: string[] | undefined = undefined;
     let strategyData: StrategyData | undefined = undefined;
     let videoUrl: string | undefined = undefined;
-    let voiceDialog: GeneratedContent extends { type: 'voice_dialog' } ? GeneratedContent['dialog'] : undefined;
+    let voiceDialog: MakePostPayload['voiceDialog'] | undefined = undefined;
     let gmbPostDetails: MakePostPayload['gmbPostDetails'] | undefined = undefined;
     let ampArticleDetails: MakePostPayload['ampArticleDetails'] | undefined = undefined;
     let seoBlogDetails: MakePostPayload['seoBlogDetails'] | undefined = undefined;
+    let emailDetails: MakePostPayload['emailDetails'] | undefined = undefined;
 
     switch (content.type) {
         case 'text':
+            caption = content.caption;
+            hashtags = content.hashtags;
+            break;
         case 'grounded_text':
         case 'analysis':
         case 'guided':
@@ -28,9 +39,7 @@ export const constructMakePayload = (content: GeneratedContent, scheduleTime: Da
         case 'alliance_ad':
             caption = content.type === 'image' ? content.caption : `**${content.headline}**\n\n${content.primaryText}\n\nCTA: ${content.callToAction}`;
             hashtags = content.hashtags;
-            if (content.imageUrl && content.imageUrl.startsWith('data:image/jpeg;base64,')) {
-                imageBase64 = content.imageUrl.split(',')[1];
-            }
+            imageBase64 = extractBase64FromDataUrl(content.imageUrl);
             break;
         case 'strategy':
             caption = "AI-Generated Content Strategy Plan";
@@ -42,13 +51,11 @@ export const constructMakePayload = (content: GeneratedContent, scheduleTime: Da
             break;
         case 'voice_dialog':
             caption = `Voice Dialog for "${content.dialogType}": ${content.scenario}`;
-            voiceDialog = content.dialog as any;
+            voiceDialog = content.dialog;
             break;
         case 'google_business_post':
             caption = content.postContent;
-            if (content.imageUrl && content.imageUrl.startsWith('data:image/jpeg;base64,')) {
-                imageBase64 = content.imageUrl.split(',')[1];
-            }
+            imageBase64 = extractBase64FromDataUrl(content.imageUrl);
             gmbPostDetails = {
                 businessName: content.businessName,
                 summary: content.postContent,
@@ -58,16 +65,12 @@ export const constructMakePayload = (content: GeneratedContent, scheduleTime: Da
         case 'blog':
             caption = `**${content.title}**\n\n${content.body}`; // Send title and markdown body
             hashtags = content.hashtags;
-            if (content.imageUrl && content.imageUrl.startsWith('data:image/jpeg;base64,')) {
-                imageBase64 = content.imageUrl.split(',')[1];
-            }
+            imageBase64 = extractBase64FromDataUrl(content.imageUrl);
             break;
         case 'monetized_article_campaign':
             caption = content.fbPost.caption;
             hashtags = content.fbPost.hashtags;
-            if (content.fbPost.imageUrl && content.fbPost.imageUrl.startsWith('data:image/jpeg;base64,')) {
-                imageBase64 = content.fbPost.imageUrl.split(',')[1];
-            }
+            imageBase64 = extractBase64FromDataUrl(content.fbPost.imageUrl);
             ampArticleDetails = content.ampArticle;
             break;
         case 'prototype':
@@ -91,6 +94,14 @@ export const constructMakePayload = (content: GeneratedContent, scheduleTime: Da
                  caption = `SEO Blog Post Titles Generated`;
             }
             break;
+        case 'email_subject':
+            caption = `Generated Email Subject`;
+            emailDetails = { subject: content.subject };
+            break;
+        case 'email_body':
+            caption = `Generated Email Body`;
+            emailDetails = { htmlBody: content.body };
+            break;
     }
 
     return {
@@ -105,6 +116,7 @@ export const constructMakePayload = (content: GeneratedContent, scheduleTime: Da
         gmbPostDetails,
         ampArticleDetails,
         seoBlogDetails,
+        emailDetails,
     };
 };
 

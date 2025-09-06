@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { FacebookPage } from '../constants';
+import { FacebookPage } from '../types';
 import { Button } from './ui/Button';
 import { Loader } from './ui/Loader';
 import { SendIcon } from './ui/icons';

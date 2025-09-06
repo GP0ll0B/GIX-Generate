@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { GeneratedContent, SIGNATURE_TEXT_FOR_COPY } from '../constants';
+import { GeneratedContent } from '../types';
+import { SIGNATURE_TEXT_FOR_COPY } from '../constants';
 import { ChevronDownIcon } from './ui/icons';
 import { PlatformDetails } from './PlatformDetails';
 import { PostHeader } from './PostHeader';

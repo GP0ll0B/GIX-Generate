@@ -1,5 +1,7 @@
 import React, { useState, useCallback } from 'react';
-import { PageGrowthSuggestion, PAGE_GROWTH_SYSTEM_INSTRUCTION, PAGE_GROWTH_SCHEMA } from '../constants';
+import { PageGrowthSuggestion } from '../types';
+import { PAGE_GROWTH_SYSTEM_INSTRUCTION } from '../prompts';
+import { PAGE_GROWTH_SCHEMA } from '../schemas';
 import { generateContent } from '../services/geminiService';
 import { Button } from './ui/Button';
 import { Loader } from './ui/Loader';
@@ -46,11 +48,15 @@ export const PageGrowthSuggestions: React.FC<PageGrowthSuggestionsProps> = ({ sh
         setError(null);
         setSuggestions([]);
         try {
-            const response = await generateContent('gemini-2.5-flash', "Analyze my page and give me growth suggestions.", {
-                systemInstruction: PAGE_GROWTH_SYSTEM_INSTRUCTION,
-                responseMimeType: 'application/json',
-                responseSchema: PAGE_GROWTH_SCHEMA,
-                temperature: 0.7
+            const response = await generateContent({
+                model: 'gemini-2.5-flash',
+                contents: "Analyze my page and give me growth suggestions.",
+                config: {
+                    systemInstruction: PAGE_GROWTH_SYSTEM_INSTRUCTION,
+                    responseMimeType: 'application/json',
+                    responseSchema: PAGE_GROWTH_SCHEMA,
+                    temperature: 0.7
+                }
             });
             const parsedData = JSON.parse(response.text.trim());
             setSuggestions(parsedData.suggestions || []);

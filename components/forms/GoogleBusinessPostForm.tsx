@@ -1,5 +1,5 @@
 import React from 'react';
-import { GoogleBusinessPostInput } from '../../constants';
+import { GoogleBusinessPostInput } from '../../types';
 
 interface GoogleBusinessPostFormProps {
     input: GoogleBusinessPostInput;

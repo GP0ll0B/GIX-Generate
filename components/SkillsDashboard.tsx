@@ -1,15 +1,20 @@
 import React, { useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { SKILLS_DATA, SkillLevel, Challenge as ChallengeType } from '../constants';
+import { SkillLevel, Challenge as ChallengeType } from '../types';
+import { SKILLS_DATA } from '../appData';
 import { Button } from './ui/Button';
 import { 
     LockIcon, CheckCircleIcon, DocumentTextIcon, ChatBubbleIcon, DollarSignIcon, ChartBarIcon 
 } from './ui/icons';
 
+const MotionDiv = motion.div as any;
+const MotionSection = motion.section as any;
+
 interface SkillsDashboardProps {
   completedChallenges: string[];
   onStartChallenge: (challenge: ChallengeType) => void;
   showToast: (message: string, type: 'success' | 'error') => void;
+  onClearCompleted: () => void;
 }
 
 const challengeIconMap: { [key in ChallengeType['icon']]: React.ReactNode } = {
@@ -34,7 +39,7 @@ const ChallengeCard: React.FC<{
         : 'bg-white/60 dark:bg-gray-800/60 border-white/20 dark:border-gray-700/50 hover:border-blue-500/50 dark:hover:border-blue-400/50 hover:shadow-lg transform hover:-translate-y-1';
 
     return (
-        <motion.div
+        <MotionDiv
             layout
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -71,12 +76,12 @@ const ChallengeCard: React.FC<{
                     )}
                 </div>
             </div>
-        </motion.div>
+        </MotionDiv>
     );
 };
 
 
-const SkillsDashboard: React.FC<SkillsDashboardProps> = ({ completedChallenges, onStartChallenge, showToast }) => {
+const SkillsDashboard: React.FC<SkillsDashboardProps> = ({ completedChallenges, onStartChallenge, showToast, onClearCompleted }) => {
 
     const { currentLevel, levelProgress, totalChallengesInLevel } = useMemo(() => {
         for (const level of SKILLS_DATA) {
@@ -105,13 +110,31 @@ const SkillsDashboard: React.FC<SkillsDashboardProps> = ({ completedChallenges, 
 
     return (
         <div className="animate-fade-in-fast max-w-7xl mx-auto">
-             <div className="text-center mb-12">
+             <div className="relative text-center mb-12">
                 <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100">
                     Your Creator Journey
                 </h2>
                 <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">
                     Complete challenges to level up your skills and unlock new potential.
                 </p>
+                <AnimatePresence>
+                    {completedChallenges.length > 0 && (
+                        <motion.div
+                            className="absolute top-0 right-0"
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                        >
+                            <Button
+                                variant="secondary"
+                                onClick={onClearCompleted}
+                                className="!bg-red-500/10 hover:!bg-red-500/20 !text-red-700 dark:!text-red-300"
+                            >
+                                Clear Completed
+                            </Button>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
 
             <div className="max-w-4xl mx-auto bg-white/50 dark:bg-gray-800/50 backdrop-blur-lg rounded-xl shadow-lg border border-white/20 dark:border-white/10 p-6 sm:p-8 mb-12">
@@ -127,7 +150,7 @@ const SkillsDashboard: React.FC<SkillsDashboardProps> = ({ completedChallenges, 
                              <span className="text-sm font-mono text-gray-600 dark:text-gray-400">{levelProgress}/{totalChallengesInLevel}</span>
                          </div>
                         <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-                            <motion.div 
+                            <MotionDiv 
                                 className="bg-blue-600 h-2.5 rounded-full" 
                                 initial={{ width: 0 }}
                                 animate={{ width: `${progressPercentage}%` }}
@@ -143,7 +166,7 @@ const SkillsDashboard: React.FC<SkillsDashboardProps> = ({ completedChallenges, 
                 {SKILLS_DATA.map(level => {
                     const isLevelLocked = level.level > currentLevel.level;
                     return (
-                        <motion.section key={level.level} layout>
+                        <MotionSection key={level.level} layout>
                             <h3 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 border-b-2 border-blue-500/50 pb-2 mb-6 flex items-center gap-3">
                                 {isLevelLocked && <LockIcon />}
                                 Level {level.level}: {level.title}
@@ -159,7 +182,7 @@ const SkillsDashboard: React.FC<SkillsDashboardProps> = ({ completedChallenges, 
                                     />
                                 ))}
                             </div>
-                        </motion.section>
+                        </MotionSection>
                     );
                 })}
                 </AnimatePresence>

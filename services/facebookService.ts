@@ -1,14 +1,52 @@
-import { FacebookPage, PublishPostParams } from "../constants";
+import { FacebookPage, PublishPostParams } from "../types";
 
 const isHttps = (): boolean => {
     return window.location.protocol === 'https:';
 };
 
+/**
+ * Parses nested error objects from the Facebook API to get a specific message based on error codes.
+ * @param error The error object caught from a fetch call.
+ * @returns An Error object with a user-friendly message.
+ */
+function handleFbApiError(error: any): Error {
+    if (!error || typeof error !== 'object') {
+        return new Error('An unknown error occurred during the Facebook API request.');
+    }
+    const message = error.message || 'An unknown Facebook API error occurred.';
+    const code = error.code;
+
+    switch (code) {
+        case 10:
+        case 200:
+        case 210:
+        case 283:
+            return new Error(`Permission Denied (Code: ${code}): ${message}. Please re-authenticate and ensure all permissions are granted.`);
+        case 190:
+            return new Error(`Your Facebook session has expired or is invalid. Please log in again to continue. (Code: ${code})`);
+        case 100:
+            return new Error(`Invalid Parameter: The request sent to Facebook was malformed. Details: ${message} (Code: ${code})`);
+        case 4:
+        case 17:
+        case 341:
+            return new Error(`API Limit Reached: You've made too many requests to Facebook. Please wait a while before trying again. (Code: ${code})`);
+        case 368:
+            return new Error(`Page Role Error: You must be an admin, editor, or moderator of the selected Page to perform this action. (Code: ${code})`);
+        case 506:
+            return new Error(`Duplicate Content: This exact post has been made recently. Please create unique content to post again. (Code: ${code})`);
+        case 803:
+            return new Error(`Content Violation: This content was flagged for violating Facebook's policies. Please review and edit your post. (Code: ${code})`);
+        default:
+            return new Error(message);
+    }
+}
+
+
 export const getPageDetails = async (pageId: string, accessToken: string): Promise<{ name: string, picture?: { data: { url: string } } }> => {
     try {
         const res = await fetch(`https://graph.facebook.com/v21.0/${pageId}?fields=name,picture&access_token=${accessToken}`);
         const data = await res.json();
-        if (data.error) throw new Error(data.error.message);
+        if (data.error) throw handleFbApiError(data.error);
         return data;
     } catch (error: any) {
         console.error('Facebook getPageDetails error:', error);
@@ -57,13 +95,13 @@ export const initFacebookSdk = (appId: string | undefined): Promise<void> => {
 export const getLoginStatus = (): Promise<any> => {
     return new Promise((resolve, reject) => {
         if (!window.FB || typeof window.FB.getLoginStatus !== 'function') {
-            return reject('Facebook SDK not initialized or App ID missing.');
+            return reject(new Error('Facebook SDK not initialized or App ID missing.'));
         }
         window.FB.getLoginStatus(function(response: any) {
             if (response.status === 'connected') {
                 resolve(response);
             } else {
-                reject(response);
+                reject(new Error(response.status || 'User not connected.'));
             }
         });
     });
@@ -72,15 +110,15 @@ export const getLoginStatus = (): Promise<any> => {
 export const login = (): Promise<any> => {
     return new Promise((resolve, reject) => {
         if (!window.FB || typeof window.FB.login !== 'function') {
-            return reject('Facebook SDK not initialized or App ID missing.');
+            return reject(new Error('Facebook SDK not initialized or App ID missing.'));
         }
         window.FB.login(function(response: any) {
             if (response.authResponse) {
                 resolve(response);
             } else {
-                reject('User cancelled login or did not fully authorize.');
+                reject(new Error('User cancelled login or did not fully authorize.'));
             }
-        }, { scope: 'email,pages_show_list,pages_manage_posts,pages_read_engagement,business_management' });
+        }, { scope: 'public_profile,pages_show_list,pages_manage_posts,pages_read_engagement,pages_manage_engagement,business_management' });
     });
 };
 
@@ -98,13 +136,13 @@ export const logout = (): Promise<any> => {
 export const getUserPages = async (): Promise<FacebookPage[]> => {
     return new Promise((resolve, reject) => {
         if (!window.FB || typeof window.FB.api !== 'function') {
-            return reject('Facebook SDK not initialized.');
+            return reject(new Error('Facebook SDK not initialized.'));
         }
         window.FB.api('/me/accounts?fields=name,access_token,picture', function(response: any) {
             if (response && !response.error) {
                 resolve(response.data);
             } else {
-                reject(response.error || 'Failed to fetch user pages.');
+                reject(handleFbApiError(response.error));
             }
         });
     });
@@ -125,14 +163,14 @@ const base64ToBlob = (base64: string, contentType: string = 'image/jpeg'): Blob 
     return new Blob(byteArrays, { type: contentType });
 };
 
-const publishTextPost = async ({ page, message, scheduledPublishTime }: Omit<PublishPostParams, 'imageBase64'>) => {
+const publishTextPost = async ({ page, message, scheduledPublishTime }: PublishPostParams) => {
     const params = new URLSearchParams({
-        message,
+        message: message || '',
         access_token: page.access_token,
-        published: String(!scheduledPublishTime)
     });
 
     if (scheduledPublishTime) {
+        params.append('published', 'false');
         params.append('scheduled_publish_time', String(Math.floor(scheduledPublishTime.getTime() / 1000)));
     }
 
@@ -143,51 +181,100 @@ const publishTextPost = async ({ page, message, scheduledPublishTime }: Omit<Pub
         });
         const data = await res.json();
         if (data.error) {
-            throw data.error;
+            throw handleFbApiError(data.error);
         }
         return data;
-    } catch (error: any) {
+    } catch (error) {
         console.error('Facebook text post error:', error);
         throw error;
     }
 };
 
-const publishPhoto = async ({ page, caption, scheduledPublishTime, imageBase64 }: { page: FacebookPage; caption: string; scheduledPublishTime?: Date; imageBase64: string; }) => {
-    const blob = base64ToBlob(imageBase64);
-    
-    const formData = new FormData();
-    formData.append('source', blob);
-    formData.append('caption', caption);
-    formData.append('access_token', page.access_token);
-
-    // Explicitly set the 'published' status. It must be false for scheduled posts.
-    formData.append('published', String(!scheduledPublishTime));
-
-    if (scheduledPublishTime) {
-        formData.append('scheduled_publish_time', String(Math.floor(scheduledPublishTime.getTime() / 1000)));
+const publishPhoto = async ({ page, message, scheduledPublishTime, imageBase64, is360 }: PublishPostParams) => {
+    if (!imageBase64) {
+        throw new Error("Cannot publish a photo post without image data.");
     }
-    
-    try {
-        const res = await fetch(`https://graph.facebook.com/v21.0/${page.id}/photos`, {
-            method: 'POST',
-            body: formData,
-        });
-        const data = await res.json();
-        if (data.error) {
-            throw data.error;
+
+    const blob = base64ToBlob(imageBase64);
+    const uploadFormData = new FormData();
+    uploadFormData.append('source', blob);
+    uploadFormData.append('access_token', page.access_token);
+    uploadFormData.append('published', 'false'); // Always false for this flow
+
+    if (is360) {
+        uploadFormData.append('allow_spherical_photo', 'true');
+    }
+
+    // --- ONE-STEP PROCESS for SCHEDULED photo posts ---
+    if (scheduledPublishTime) {
+        uploadFormData.append('scheduled_publish_time', String(Math.floor(scheduledPublishTime.getTime() / 1000)));
+        if (message) {
+            uploadFormData.append('caption', message);
         }
-        return data;
-    } catch (error: any) {
-        console.error('Facebook photo upload error:', error);
+        
+        try {
+            const uploadRes = await fetch(`https://graph.facebook.com/v21.0/${page.id}/photos`, {
+                method: 'POST',
+                body: uploadFormData,
+            });
+            const uploadData = await uploadRes.json();
+            if (uploadData.error) throw handleFbApiError(uploadData.error);
+            return uploadData; // This call returns a post_id when scheduled.
+        } catch (error) {
+            console.error('Facebook scheduled photo post error:', error);
+            throw error;
+        }
+    }
+
+    // --- TWO-STEP PROCESS for IMMEDIATE photo posts ---
+    let photoId;
+    try {
+        const uploadRes = await fetch(`https://graph.facebook.com/v21.0/${page.id}/photos`, {
+            method: 'POST',
+            body: uploadFormData,
+        });
+        const uploadData = await uploadRes.json();
+        if (uploadData.error) {
+            throw handleFbApiError(uploadData.error);
+        }
+        photoId = uploadData.id;
+    } catch (error) {
+        console.error('Facebook photo upload (step 1) error:', error);
+        throw error;
+    }
+
+    if (!photoId) {
+        throw new Error("Failed to upload photo, could not get a valid photo ID.");
+    }
+
+    const postParams = new URLSearchParams({
+        message: message || '',
+        access_token: page.access_token,
+        'attached_media[0]': JSON.stringify({ media_fbid: photoId }),
+    });
+
+    try {
+        const postRes = await fetch(`https://graph.facebook.com/v21.0/${page.id}/feed`, {
+            method: 'POST',
+            body: postParams,
+        });
+        const postData = await postRes.json();
+         if (postData.error) {
+            throw handleFbApiError(postData.error);
+        }
+        return postData;
+    } catch (error) {
+        console.error('Facebook photo post (step 2) error:', error);
         throw error;
     }
 };
 
-export const publishPost = async ({ page, message, scheduledPublishTime, imageBase64 }: PublishPostParams): Promise<any> => {
-    if (imageBase64) {
-        return publishPhoto({ page, caption: message, scheduledPublishTime, imageBase64 });
+
+export const publishPost = async (params: PublishPostParams): Promise<any> => {
+    if (params.imageBase64) {
+        return publishPhoto(params);
     } else {
-        return publishTextPost({ page, message, scheduledPublishTime });
+        return publishTextPost(params);
     }
 };
 
@@ -195,8 +282,11 @@ export const verifyManualToken = async (token: string, pageId: string): Promise<
     try {
         const res = await fetch(`https://graph.facebook.com/v21.0/${pageId}?fields=name,picture&access_token=${token}`);
         const data = await res.json();
-        if (data.error || !data.name) {
-            throw new Error(data.error?.message || 'Invalid Token or Page ID. The token may have expired or lacks permissions for this Page.');
+        if (data.error) {
+            throw handleFbApiError(data.error);
+        }
+        if (!data.name) {
+            throw new Error('Invalid Token or Page ID. The token may have expired or lacks permissions for this Page.');
         }
         return data;
     } catch (error: any) {

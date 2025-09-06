@@ -1,9 +1,5 @@
-
-
-
-
 import React, { useState } from 'react';
-import { GeneratedContent } from '../constants';
+import { GeneratedContent } from '../types';
 import { Button } from './ui/Button';
 import { Loader } from './ui/Loader';
 import { RadialProgress } from './ui/RadialProgress';

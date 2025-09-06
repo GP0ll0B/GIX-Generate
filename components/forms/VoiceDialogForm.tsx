@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { VoiceDialogInput } from '../../constants';
+import { VoiceDialogInput } from '../../types';
 
 interface VoiceDialogFormProps {
     voiceDialogInput: VoiceDialogInput;

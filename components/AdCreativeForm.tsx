@@ -1,6 +1,6 @@
-
 import React from 'react';
-import { AdCreativeInput } from '../../constants';
+import { AdCreativeInput } from '../types';
+import { CheckCircleIcon } from './ui/icons';
 
 interface AdCreativeFormProps {
     adCreativeInput: AdCreativeInput;
@@ -14,6 +14,15 @@ export const AdCreativeForm: React.FC<AdCreativeFormProps> = ({ adCreativeInput,
 
     return (
         <div className="space-y-4">
+            <div className="p-3 mb-4 bg-green-500/10 dark:bg-green-900/20 border-l-4 border-green-500 rounded-r-lg flex items-start gap-3">
+                <CheckCircleIcon className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+                <div>
+                    <h4 className="font-semibold text-sm text-green-800 dark:text-green-200">Ad Account Verified</h4>
+                    <p className="text-xs text-green-700 dark:text-green-300/80">
+                        Phone number 01974-309970 (ID: 61551854475435) is verified and active for advertising.
+                    </p>
+                </div>
+            </div>
             <div>
                 <label htmlFor="product-service" className="font-semibold text-gray-800 dark:text-gray-200 mb-1 block">1. Product or Service</label>
                 <textarea
