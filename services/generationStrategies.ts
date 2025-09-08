@@ -51,7 +51,6 @@ export interface GeneratePostsParams {
     engagementBoosterInput: EngagementBoosterInput;
     automatedResponderInput: AutomatedResponderInput;
     whatsAppAutoResponderInput: WhatsAppAutoResponderInput;
-    // FIX: Added missing property to support the 'Post Engagement Strategist' feature.
     postEngagementStrategistInput: PostEngagementStrategistInput;
     inputImage: { data: string; type: string; } | null;
     commentsText: string;

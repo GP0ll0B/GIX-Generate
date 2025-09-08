@@ -113,7 +113,6 @@ Your output MUST be a single, valid JSON object that adheres to the provided sch
 3.  **Boost Strategy:** Recommend a simple, actionable strategy for paid promotion, including a plausible simulated outcome.
 4.  **Follow-up Post Idea:** Suggest one creative and relevant idea for a follow-up post.`;
 
-// FIX: Added a new system instruction for the combined post and strategy generation.
 export const POST_AND_ENGAGEMENT_STRATEGY_SYSTEM_INSTRUCTION = `${BASE_SYSTEM_INSTRUCTION}
 
 You are an expert social media strategist. You will be given a topic. Your task is to perform two actions and return them in a single JSON object:

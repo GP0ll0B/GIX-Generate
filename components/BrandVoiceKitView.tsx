@@ -5,7 +5,6 @@ import { Button } from './ui/Button';
 import { Loader } from './ui/Loader';
 import { SparklesIcon, FingerPrintIcon } from './ui/icons';
 
-// FIX: Cast motion.div to any to resolve framer-motion type errors.
 const MotionDiv = motion.div as any;
 
 interface BrandVoiceKitViewProps {

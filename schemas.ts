@@ -92,7 +92,6 @@ export const POST_ENGAGEMENT_STRATEGY_SCHEMA = {
     }
 };
 
-// FIX: Added a new schema for generating a post and its engagement strategy together.
 export const POST_WITH_ENGAGEMENT_STRATEGY_SCHEMA = {
     type: Type.OBJECT,
     properties: {

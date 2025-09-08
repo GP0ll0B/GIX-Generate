@@ -9,11 +9,16 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://esm.sh" crossorigin />
-    <!-- Preload critical scripts -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+
+    <!-- Preload critical resources -->
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.4/dist/tailwind.min.css" as="style">
+    <link rel="preload" href="/styles.css" as="style">
     <link rel="modulepreload" href="/index.tsx" />
     <link rel="modulepreload" href="https://esm.sh/react@^19.1.1" />
     <link rel="modulepreload" href="https://esm.sh/react-dom@^19.1.1/client" />
     <link rel="modulepreload" href="https://esm.sh/framer-motion@^11.3.12" />
+    
     <script>
       (function() {
         try {
@@ -40,167 +45,11 @@
         }
       }
     </script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-      body {
-        font-family: 'Inter', sans-serif;
-      }
-      /* --- Loader styles --- */
-      #app-loader {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        background-color: #f9fafb; /* bg-gray-50 */
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: 9999;
-        transition: opacity 0.5s ease-out;
-      }
-      html.dark #app-loader {
-        background-color: #111827; /* bg-gray-900 */
-      }
-      #app-loader.fade-out {
-        opacity: 0;
-      }
-      .pulsating-loader {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 48px;
-        margin-bottom: 1.5rem;
-      }
-      .pulsating-loader .bar {
-        width: 8px;
-        height: 24px;
-        margin: 0 4px;
-        background-color: #3b82f6; /* text-blue-500 */
-        border-radius: 4px;
-        animation: pulse 1.2s infinite ease-in-out;
-      }
-      html.dark .pulsating-loader .bar {
-        background-color: #60a5fa; /* text-blue-400 */
-      }
-      .pulsating-loader .bar:nth-child(2) {
-        animation-delay: 0.2s;
-      }
-      .pulsating-loader .bar:nth-child(3) {
-        animation-delay: 0.4s;
-      }
-      @keyframes pulse {
-        0%, 80%, 100% {
-          transform: scaleY(0.4);
-          opacity: 0.5;
-        }
-        40% {
-          transform: scaleY(1.0);
-          opacity: 1;
-        }
-      }
-      .loading-text {
-        font-size: 2.25rem; /* text-4xl */
-        font-weight: 700; /* font-bold */
-        color: #3b82f6; /* text-blue-500 */
-      }
-      html.dark .loading-text {
-        color: #60a5fa; /* text-blue-400 */
-      }
-      .loading-subtext {
-        margin-top: 0.5rem;
-        font-size: 1rem; /* text-base */
-        color: #4b5563; /* text-gray-600 */
-        max-width: 320px;
-        text-align: center;
-      }
-      html.dark .loading-subtext {
-        color: #9ca3af; /* text-gray-400 */
-      }
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.4/dist/tailwind.min.css" rel="stylesheet">
+    <link href="/styles.css" rel="stylesheet">
 
-      /* Error state styles */
-      .error-icon {
-        color: #ef4444; /* text-red-500 */
-        margin-bottom: 1rem;
-      }
-      .error-text {
-        font-size: 2.25rem; /* text-4xl */
-        font-weight: 700; /* font-bold */
-        color: #dc2626; /* text-red-600 */
-      }
-      html.dark .error-text {
-        color: #f87171; /* text-red-400 */
-      }
-      .retry-button {
-        margin-top: 1.5rem;
-        padding: 0.75rem 1.5rem;
-        font-weight: 600;
-        color: white;
-        background-color: #3b82f6; /* bg-blue-500 */
-        border: none;
-        border-radius: 0.5rem;
-        cursor: pointer;
-        transition: background-color 0.2s;
-      }
-      .retry-button:hover {
-        background-color: #2563eb; /* bg-blue-600 */
-      }
-
-      @keyframes fade-in-fast {
-        from { opacity: 0; }
-        to { opacity: 1; }
-      }
-      .animate-fade-in-fast {
-        animation: fade-in-fast 0.3s ease-out forwards;
-      }
-      @keyframes toast-in {
-        from {
-          opacity: 0;
-          transform: translateY(-20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-      @keyframes toast-out {
-        from {
-          opacity: 1;
-          transform: translateY(0);
-        }
-        to {
-          opacity: 0;
-          transform: translateY(-20px);
-        }
-      }
-      @keyframes overlay-show {
-        from { opacity: 0; }
-        to { opacity: 1; }
-      }
-      .animate-toast-in {
-        animation: toast-in 0.3s ease-out forwards;
-      }
-      .animate-toast-out {
-        animation: toast-out 0.3s ease-out forwards;
-      }
-      .animate-overlay-show {
-        animation: overlay-show 0.2s ease-out forwards;
-      }
-      @keyframes pulse-bg {
-        0%, 100% { background-color: transparent; }
-        50% { background-color: rgba(59, 130, 246, 0.15); } /* bg-blue-500/15 */
-      }
-      .animate-pulse-bg {
-        animation: pulse-bg 0.8s ease-in-out;
-      }
-      .article-body p { margin-bottom: 1rem; }
-      .article-body h2 { margin-top: 2rem; margin-bottom: 1rem; border-bottom: 1px solid rgba(209, 213, 219, 0.5); padding-bottom: 0.5rem; }
-      .article-body h3 { margin-top: 1.5rem; margin-bottom: 0.75rem; }
-      .article-body ul { margin-bottom: 1rem; }
-    </style>
   <script type="importmap">
 {
   "imports": {

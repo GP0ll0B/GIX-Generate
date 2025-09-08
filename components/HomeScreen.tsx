@@ -64,11 +64,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectUseCase, onNavig
       <div className="max-w-6xl mx-auto px-6 py-12 sm:py-16">
 
         {/* Header / Hero */}
-        <div className="grid md:grid-cols-2 gap-8 items-center">
-          <MotionDiv initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} className="space-y-6 text-center md:text-left">
+        <div className="grid md:grid-cols-1 gap-8 items-center">
+          <MotionDiv initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 text-center">
              <h1 className="text-5xl md:text-6xl font-extrabold text-gray-800 dark:text-gray-100">GIX.AI</h1>
-            <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-xl mx-auto md:mx-0">Forging Ethical AI: A Symbiotic Future</p>
-            <div className="flex flex-wrap items-center gap-3 mt-4 justify-center md:justify-start">
+            <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-xl mx-auto">Forging Ethical AI: A Symbiotic Future</p>
+            <div className="flex flex-wrap items-center gap-3 mt-4 justify-center">
                 <a 
                     href="https://gix-ai.blogspot.com/#partnership"
                     target="_blank"
@@ -84,18 +84,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectUseCase, onNavig
                     Launch G|I|X Generate
                 </button>
             </div>
-          </MotionDiv>
-
-          <MotionDiv initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} className="flex justify-center items-center">
-            <iframe
-              src="https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fwww.facebook.com%2Fg.pollob.2025%2Fvideos%2F895770499585315%2F&show_text=true&width=267&t=0"
-              width="267"
-              height="591"
-              style={{ border: 'none', overflow: 'hidden' }}
-              frameBorder="0"
-              allowFullScreen={true}
-              allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-            ></iframe>
           </MotionDiv>
         </div>
 
